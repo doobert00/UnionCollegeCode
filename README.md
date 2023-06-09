@@ -1,4 +1,4 @@
-# UC_Code
+# Union College Code
 Code from select classes while studying at Union College.
 
 # Operating Systems
@@ -27,8 +27,7 @@ Code from select classes while studying at Union College.
   - Contains my research at Union College, supervised by Professor Matt Anderson.
   - SeniorThesis contains the .tex code for the SeniorThesis.pdf final thesis paper.
   - WA_Thmm_Sage is the Sage Math implementation of my thesis.
-  - Zach_Dubinsky_Research_Report.pdf is a research report of my work during Summer
-  2021.
+  - Zach_Dubinsky_Research_Report.pdf is a research report of my work during Summer 2021.
 
 # System Architecture
   - Course Code: CSC-270
