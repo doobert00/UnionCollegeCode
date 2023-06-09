@@ -1,0 +1,15 @@
+	1. Describe the interleaving and the bug it causes.
+This test launches two forks two threads with two distinct lists to the function interleave_test_1. The test
+itterativelty adds and removes characters to and from a list. When all items are added, and every time an item
+is removed, iterleave_test_1 calls the linked list print function. The linked list print function has a thread
+yield at the end of its execution. 
+
+The bug we see is that the printing alternates between thread, so that items are added and removed to and 
+from the distinct lists in an alternating pattern.
+
+	2. Describe what behavior you expect for this interleaving.
+The behavior described in 1 is the behavior we expected.
+
+
+	3. Describe what behavior you actually see when you execute this. If this is different from what actually happened, this is fine -- as long as you explain what actually happened. Feel free to copy and paste output from the console. You might have to use the debugger to step through the program to figure out what really happened.
+The behavior described in 1 is the behavior that occured.

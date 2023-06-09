@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "array": "c",
+        "syscall.h": "c",
+        "mutex": "c",
+        "condition_variable": "c"
+    }
+}

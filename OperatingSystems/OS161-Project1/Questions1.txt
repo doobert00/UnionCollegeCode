@@ -1,0 +1,36 @@
+1. In C, what is the purpose of header files, like those found in os161/src/kern/include.
+
+The .h header files are interfaces to .c files. As such, .h files are supposed to include method signatures and can define types.
+However, it seems like C allows function definitions in .h files since they are present.
+
+2. Which file contains MIPS assembly code for booting the kernel (Hint: Its where the debugger starts)? Why is it written in assembly rather than C?
+
+It is located in "os161-dubinskz-proj1/src/kern/arch/sys161/main/start.S". I think it is written in assembly to actually partition system
+hardware for the virtual OS, or to give a base assembly architecture for the virtual cores to run on. I am not sure.
+
+3. What data structures and utility functions have been implemented in os161/kern/lib for your use?
+
+Array, timer/clock, bitmap, and uio are the data structures. There is a printing function, a byte-swapper, a a number of string manipulators for utility functions.
+
+4. What are three system calls that OS/161 supports, but that are not yet implemented? Where can documentation for thse calls be found in OS/161?
+If you were going to add a brand new system call to OS/161, which files would have to be changed?
+
+The following syscalls have not yet been implemented:
+a) symlink
+b) mkdir
+c) rmdir
+
+Documentation for these files can be found in /src/man/index.html. src/kernel/includes/syscall.h would
+have to be changed. These syscalls would also need their own headers and implementations in seperate .h and .c files (resp.).
+
+5. Pick five of the directories in os161/src/kern/. For each, write a sentance giving a high level description of the purpose of the code in that directory.
+
+a) include: Contains C header files for the kernel at various levels of abstraction.
+
+b) lib: Contains C implementations of the headers in the include directory.
+
+c) thread: Contains C implementations of multithreading in the OS.
+
+d) test: Contains C testers for pieces of the OS.
+
+e) gdbscripts: Contains scripts for the gdb debugger to debug some data structures and algorithms, rather than typing them out line by line in the console.

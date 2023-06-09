@@ -1,0 +1,14 @@
+	1. Describe the interleaving and the bug it causes.
+This test launches two threads with the same list. Each thread prepends characters to the list with a thread
+constant for the particular thread so we can distuinsh who added a particular character. We print the list after 
+each prepend.
+
+A thread yield occurs in the prepend function so which will cause the other thread, with the same list, to add another 
+character. The bug that occurs is each thread adds a character in interleaving order. An example of normal behavior for this
+code (if thread safe) would be thread_0 adds a,b,c and thread_1 adds d,e,f so that the list contains a,b,c,d,e,f in that order.
+
+	2. Describe the expected behavior.
+We expect the behavior described in 1.
+
+	3. Describe the observed behavior.
+We observe the behavior described in 1.

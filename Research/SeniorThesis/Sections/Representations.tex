@@ -1,0 +1,126 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\begin{document}
+\section{Working in the Representation}\label{sec:representations}
+We now describe our representation strategy for algebras, and the linear algebraic constructions we use for performing computations with them. Throughout this section we let $\A = \QQ[G]$ for a finite group $G =\{g_1,...,g_n\}$ for brevity.
+
+\subsection{The Standard Representations}
+By definition of a finite dimensional group algebra, every element of $\A$ is of the form,
+\begin{equation*}
+    u_1g_1+\cdots+u_ng_n
+\end{equation*}
+with coefficients $u_1,...,u_n\in\QQ.$ It is often easier to represent these elements by a vector of their coefficients, indexed by the subscript on group elements:
+\begin{equation*}
+    u_1g_1+\cdots+u_ng_n = \begin{bmatrix}u_1 &\cdots & u_n\end{bmatrix}.
+\end{equation*}
+Moreover, we can identify $g_i$ by the $i^{th}$ unit vector in $\QQ^n.$ We say $G$ is a \textbf{standard basis} of the algebra $\A.$ The standard basis of group elements is canonical for $\A = \QQ[G]$.
+
+We also need a representation for the product operation on elements of an algebra. We begin with algebras given over the standard basis of group elements. For this, we rely on the closure axiom of groups: that the product of any two group elements is another group element. We define the \textbf{structure constants} of this basis as the tensor $C\in\ \{0,1\}^{n\times n\times n}$ such that,
+\begin{equation}\label{eq:GroupStructureConstants}
+    C(i,j,k) = \begin{cases}
+                    1 \text{ if } g_ig_j = g_k \\
+                    0 \text{ if } g_ig_j \neq g_k
+                \end{cases}.
+\end{equation}
+We can compute the product of two elements $a,b\in\A$, given with respect to the standard basis of group elements, in the following way:
+\begin{align*}\label{eq:SCalgebraproduct}
+    ab &= \Big(\sum_{i=1}^n u_ig_i\Big) \Big(\sum_{j=1}^n u_j'g_j\Big) \\
+    &= \sum_{i=1}^n\sum_{j=1}^n u_iu_j'g_ig_j\\
+    &= \sum_{i=1}^n\sum_{j=1}^n u_iu_j'\sum_{k=1}^n C(i,j,k) g_k
+\end{align*}
+for $u_i,u_j'\in\QQ$. We note that the right-hand-side can also be represented as a vector with respect to the standard basis of group elements.
+
+To obtain structure constants we first impose an indexed ordering of the group basis. We then compute the products $g_ig_j$ and store the result in our structure constant tensor. This can be done by hand, transcribed from a Cayley table, or implemented with some computational representation.
+
+These structure constants $C\in\{0,1\}^{n\times n\times n}$ are the inputs to our program. They are effectively multidimensional arrays of length $n$ along all axes. This length is sufficient to generate a standard basis of unit vectors for a complete representation of the algebra. 
+
+\subsection{The General Representation}\label{sec:TheGeneralRepresentation}
+We will occasionally need to represent non-trivial subalgebras of $\A$ with distinct bases. Let $\A$ be an algebra and consider the subalgebra $I\subseteq\A$ with \textbf{derived basis} $B=\{a_1,...,a_c\}$ for some $c\leq dim(\A)=n.$ Then every element of $I$ is of the form,
+\begin{equation*}
+    u_1a_1 + \cdots + u_ca_c = \begin{bmatrix}u_1&\hdots&u_c\end{bmatrix}    
+\end{equation*}
+for some $u_j\in\QQ$. Further structure is imposed on this construction with a \textbf{change of basis}. Each basis element of $I$ is of the form,
+\begin{equation*}
+    a_j = \sum_{\ell=1}^n u_{\ell}'g_{\ell} = \begin{bmatrix}u_1'&\hdots&u_n'\end{bmatrix}
+\end{equation*}
+for some $u_{\ell}'\in\QQ.$ Then we can express any element of $I$ with respect to $B$, and with respect to the basis of $\A.$ 
+
+This is necessary for computing products in a subalgebra if it does not have a standard basis. Then we must compute a change of basis and use the group structure constants $C\in\{0,1\}^{n\times n\times n}$ of $\A$ to compute products:
+\begin{align*}
+    a_ia_j &= \sum_{k=1}^n u_{k}g_k \sum_{\ell=1}^n u_{\ell}'g_{\ell}\\
+    &= \sum_{k=1}^n\sum_{\ell=1}^n u_{k}u_{\ell}'g_kg_{\ell}\\
+    &= \sum_{k=1}^n\sum_{\ell=1}^n u_{k}u_{\ell}'\sum_{p=1}^nC(k,\ell,p)g_p
+\end{align*}
+for some $u_{k},u_{\ell}'\in\QQ.$ Our derived basis is enough to represent subalgebras or to create other interesting structures. We can even compute the products of elements in this space. The work that remains is to embellish these spaces.
+
+We consider the same subalgebra algebra $I\subseteq\A$ with basis $B$. Now let $F\in\QQ^{c\times c\times c}$ be the \textbf{derived structure constants} for this basis of $\A$ such that,
+\begin{equation*}
+    a_ia_j = \sum_{k=1}^c F(i,j,k)a_k.
+\end{equation*}
+Since $I\subseteq\A$, each $a_i\in B$ can be expressed over the canonical basis $G.$ Note that we can always compute products in $I$ with a change of basis and the structure constants in $C\in\{0,1\}^{n\times n\times n}$. However, with derived structure constants we can treat $B$ as a standard basis. Identify each $a_i\in B$ with the $i^{th}$ unit vector in $\QQ^{c}$. Then we can multiply elements of $I$ when expressed over the standard basis $B$ with the structure constants in $F\in\QQ^{c\times c\times c}$.
+
+\subsection{Constraining the Algebra}\label{sec:FindingSubalgebras}
+Let $\A$ be a group algebra algebra of a finite group over the rationals. Let $B=\{a_1,...,a_n\}$ be some standard basis with structure constants in $C\in\QQ^{n\times n\times n}.$ The problem of constraining $\A$ concerns finding elements. Sets of elements, or just one, can often be classified by their invariants under the product operation. Respective examples are the center of an algebra or the identity element. We aim to express these product invariants as a linear system. We can then solve for a basis of the desired elements. Let $\alpha = x_1a_1+\cdots+x_na_n$ be an indeterminate element of the algebra with $x_i\in\QQ.$ Then the product of the basis element $a_1$ with $\alpha$ is,
+\begin{align*}
+    a_1\alpha &= a_1\sum_{j=1}^n x_ja_j\\ 
+              &= \sum_{j=1}^n x_ja_1a_j\\
+              &= \sum_{j=1}^n x_j \sum_{k=1}^n C(1,j,k)a_k\\
+              &= \sum_{j=1}^n x_j(C(1,j,1)a_1+\cdots+C(1,j,n)a_n).\\
+\intertext{This is a linear combination of the standard basis $B$. It is an element of $\A$, we express in the vector representation over $B$:}
+              &= \sum_{j=1}^n x_j\begin{bmatrix}C(1,j,1)&\hdots&C(1,j,n)\end{bmatrix}\\
+              &=x_1\begin{bmatrix}
+                  C(1,1,1)&\hdots&C(1,1,n)
+                \end{bmatrix} + \cdots + 
+                x_n\begin{bmatrix}
+                    C(1,n,1) &\cdots&C(1,n,n)
+                \end{bmatrix}.\\
+\intertext{This sum of scaled vectors is equivalent to the matrix-vector product,}
+              &= \begin{bmatrix}
+                  C(1,1,1) & \hdots & C(1,n,1)\\
+                  \vdots & & \vdots\\
+                  C(1,1,n) & \hdots & C(1,n,n)\\
+              \end{bmatrix}
+              \begin{bmatrix}
+                  x_1\\\vdots\\x_n
+              \end{bmatrix}\\
+              &= C(1,\infty,\infty)
+              \begin{bmatrix}
+                  x_1\\\vdots\\x_n
+              \end{bmatrix}.\\
+\end{align*}
+We define the matrix $C(1,\infty,\infty)\in\QQ^{n\times n}$ such that $C(1,\infty,\infty)\alpha=a_1\alpha$. Compute the left-hand-side as a matrix-vector product and the right-hand-side by the structure constants in $C.$ This holds for any $\alpha\in\A.$ More generally, $C(i,\infty,\infty)\alpha = a_i\alpha$ for the particular basis element $a_i$ of $\A$. We use $\infty$ as a sentinel to indicate complete access to the full range of values of the specified axis of the tensor.
+
+We remark that the argument is symmetric to show that $C(\infty,i,\infty)\alpha = \alpha a_i.$ We also abstract this construction to express the product of \textit{every} basis element of the algebra with the indeterminate element $\alpha:$
+\begin{equation}\label{eq:FindingElementsSystem}
+    \begin{bmatrix} 
+    C(1,\infty,\infty)\\
+    \vdots\\
+    C(c,\infty,\infty)\\
+    \end{bmatrix}
+    \begin{bmatrix}
+        x_1\\\vdots\\x_n
+    \end{bmatrix}
+    = 
+    \begin{bmatrix}
+    a_1\alpha\\
+    \vdots\\
+    a_c\alpha
+    \end{bmatrix}.
+\end{equation}
+The right-hand-side denotes a $1\times n^2$ vector with entries in $\QQ.$ Each $a_i\alpha$ are correspond to a $n$-length range of product column. As coordinates on the basis $B$, the range $a_i\alpha$ is equal to the computation of the same product by structure constants.
+
+From our construction, the matrix on the left-hand-side is fixed for the structure constants in $C\in\QQ^{n\times n\times n}.$ We want to constrain the algebra by the properties of the product we want obeyed. This amounts to manipulating the system. Fix $\alpha\in\A.$ If we set every $a_i\alpha = \alpha$ in the solution vector, the solutions to the system form a basis for $\beta\in\A$ satisfying $a_i\beta = \alpha.$ Conversely, substituting $\alpha$ for the indeterminate vector yields a basis for $\A\alpha.$ We return to this idea throughout, and manipulate further to find bases for structures of interest.
+
+\subsection{Lifting the Basis}\label{sec:RaisingTheBasis}
+Earlier, we presented a change of basis technique which takes an element of a subalgebra and changes its basis to that of the full algebra. We now present the opposite, that is, a technique to take an element of an algebra and changes its basis to that of a subalgebra. 
+
+Let $\A$ be an algebra and $I\subset\A$ a subalgebra with derived basis $B=\{u_1,...,u_c\}$, given over some standard basis of $\A.$ Let $a\in\A$, given over the same standard basis. We define the following matrix:
+\begin{equation}\label{eq:RaisingTheBasis}
+    P = \begin{bmatrix}
+        \vline & &\vline &\vline\\
+        u_c & \hdots & u_1 & a\\
+        \vline & &\vline &\vline
+    \end{bmatrix}.
+\end{equation}
+Each column the transpose of the vector representation of the denoted element. Compute the row-echelon form of $P$. The first $c$ entries of the last column are the coordinates of $a$ with respect the basis $B$. We note that if $a\nin I$, then $a$ cannot be expressed by this basis. The coefficients we obtain are zero in this case.
+\end{document}

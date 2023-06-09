@@ -1,0 +1,24 @@
+Zach (dubinskz)
+
+Git Usage and Project Structure (11/20)
+---------------------------------------
+
+-5: commit messages often don't say what changes you made.
+
+Fixes to allow code to work for my testing:
+
+-2: Moved ZachGraphTests to the proper directory and package
+
+-2: Changed GraphFactory to match requirements: 
+
+1. Return type should be Graph, not ZachGraph.
+
+2. You don't need to create GraphFactory objects in your tests in order to call the static method.
+
+
+
+Code and Test Quality (35/50)
+-----------------------------
+
+Failures found IN your code  : 20
+Failures found BY your tests : 17

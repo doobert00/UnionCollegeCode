@@ -1,0 +1,8 @@
+\documentclass[../thesis.tex]{subfiles}
+\begin{document}
+
+\section{Future Work}\label{sec:FutureWork}
+There are many lines of continuation for this thesis topic with two main directions. The first is advancing the Cohn and Umans framework. These algorithms can currently produce the mapping, guaranteed by the Wedderburn-Artin Theorem, for some algebras of the rationals over a finite group. This is the case where the Wedderburn components are all one-dimensional matrices over the rationals. In order to obtain the $\omega=2.41$ upper bound from Cohn and Umans \cite{CohnNew}, we will need to extend the algorithm to represent Wedderburn components of cyclotomic fields and matrices of dimension greater than $1.$ This is the codomain for the particular group that gives rise to the $\omega=2.41$ bound. We need an algorithm to solve the so-called explicit isomorphism problem which was shown to be in \textbf{NP} by R\`onyai \cite{SimpleAlgebrasAreDifficult}.
+
+The other place for advancement is in pure mathematics. My algorithm is able to determine the Wedderburn components of many group algebras. I have implemented two additional subroutines, mentioned briefly in Section \ref{sec:Results/Applications}, that have been used to determine the Wedderburn components of an algebra of the rationals over a finite semigroup. This functionality is not provided by Wedderga \cite{wedderga}, and would represent an advancement in the classification of finite-dimensional associative algebras. Further, integrating the algorithms presented in this paper with a computational discreet algebra system would allow us utilize the tools of a more robust system and advance the capabilities, as well as the efficiency, of our developments.
+\end{document}

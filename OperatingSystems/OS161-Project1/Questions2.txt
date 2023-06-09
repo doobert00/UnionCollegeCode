@@ -1,0 +1,56 @@
+1. What is the type of data in the Linked_List_Node struct? Explain.
+
+The Linked_List_Node struct contains four data fields. The first two are pointers to
+the preceding and subsequent Linked_List_Node's in the linked list. A pointer is used
+so that we can work with references to the actual nodes rather than being limited to
+their value. The third type is an integer key, presumably an index of the node in
+the list. A pointer is not necessary because, if we need to share the index, their is
+no distinguishable difference between the value and the reference to the value. The
+fourth field is the data potion of the node which is kept in a void pointer. This allows
+the data to be passed by reference, so the list is abstract and can hold any type. A void
+pointer is similar to a generic type where it only stores a memory address, and proper
+access of the data pointed to is left in the hands of the user who will need to treat/cast
+appropriately.
+
+2. Explain the line typedef struct Linked_List Linked_List in linked_list.h.
+
+This line defines a type, namely a Linked_List struct, and provides an alias for
+initializing the type, though the alias is the same name. The subsequent lines of
+code define the data fields for this struct, so it is a little redundant.
+
+3. What does the function kmalloc used in linked_list.c do? How do you do the analogous
+thing in Java.
+
+The function kmalloc allocates space in memory for the head node of the linked list.
+There really isn't a comparable thing in Java, save calling the constructor. Java
+implementations I've seen use a private node class, a head node would be created
+here in Java, but Java handles memory allocation for the programmer.
+
+4. Boot the kernel and use the menu to figure out how to run the linked list test found in
+linked_list_test.c Run it. Look at the source code for the kernel menu. Trace the code
+between the point where the user enters the appropriate command in the menu and the
+point at which the test starts to run. Give a brief description of this process.
+
+The menu runs in an infinite while loop (unsettling) that gets the buffer and executes
+via the menu_execute function. When the user presses enter with their arguments,
+there is text in the buffer and menu_execute is called with an argument. This function
+parses the text and, prints to the console (normal terminal behavior) and calls
+cmd_dispatch, waiting for an integer result.
+
+The function cmd_dispatch sets up a number of variables for measurements on the execution
+of a function. It checks that the argument is valid in a number of ways, and then
+checks hashmap for the function that is bound to an argument. For "?t" and "llt" the
+callable functions are updated and the test function is called (resp.). It times
+the operation, prints the time, and returns an integer result of the call, indicating the result.
+
+Back in menu_execute, we check the result of the function and output the relevant error message.
+We then return the to the menu while loop in the menu function.
+
+5. What does splhigh() do? Why is called at the beginning of the two linked list test threads?
+Try commenting it out, then rebuild and install the kernel, and then run the test again.
+What happens?
+
+From the comments on corresponding code in threads.c, spl.c, and spl.h it seems to pertain
+to the interrupt level. When I commented the splhigh() line out, the tests did not terminate.
+The code for spl.h sets it to the highest interrupt level, so I think the tests are not able
+to tell the OS they are done and they never terminate.

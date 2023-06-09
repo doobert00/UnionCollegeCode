@@ -1,0 +1,29 @@
+\documentclass[../thesis.tex]{subfiles}
+\begin{document}
+
+\section{Results}\label{sec:results}
+We now synthesize the findings and achievements of this body of work in terms of producing explicit Wedderburn decompositions, and performing Cohn and Umans matrix multiplication. We make note of such results that lead us to places for future work.
+
+\subsection{On the Computation of $\Phi$}\label{sec:results/phi}
+The goal of this thesis was to advance the Cohn and Umans fast matrix multiplication algorithm by implementing the missing piece: explicit Wedderburn decompositions. I was able to complete this implementation with mixed success. 
+
+We defined the function $\Phi$ as the linear transformation of elements of the algebra $\QQ[G]$ to the Wedderburn decomposition space in a particular case. We were was able to compute $\Phi$ for a number of group algebras when the Wedderburn components were only rational fields. The running time of this algorithm is polynomial in the size of the group. For algebras that map to matrices of higher dimensions, or to extensions of the rationals, there is an unimplemented step. This is known as the explicit isomorphism problem. The computational complexity of defining an explicit isomorphism was shown to be equivalent to integer factorization by R\`onyai \cite{SimpleAlgebrasAreDifficult}.
+
+However, we were able to find the primitive, central, orthogonal idempotents for a number of algebras which is non-trivial. With these elements we determined the dimensions of the Wedderburn components of many group algebras. This functionality is provided by the Wedderga \cite{wedderga} library of GAP \cite{gap}, but with an entirely different implementation. From what I have seen, my implementation seems to be a novelty for performing this computation.
+
+\subsection{Generalized Applications}\label{sec:Results/Applications}
+My implementation of the Wedderburn-Artin Theorem is for a specific application in  fast matrix mutliplication algorithms. My aim was to produce an algorithm that calculates the explicit Wedderburn decompositions of the finite dimensional group algebra $\QQ[G].$ It turns out that these algorithms are more general. 
+
+In the context of pure mathematics, the Wedderburn-Artin Theorem applies to a more broad class of structures called \textbf{semisimple} algebras. The algebra $\QQ[G]$ of a finite group is always semisimple because $\QQ$ has characteristic 0. However, the algebra $\FF[G]$ for some other field or ring $\FF$ may also be semisimple. If we have a representation for $\FF$, we can also compute Wedderburn decompositions of the algebra $\FF[G]$ using the same ideas in these algorithms with slight conceptual changes.
+
+In an even further extension, Bremner \cite{bremner} generalizes the notion of a Wedderburn decomposition to algebras that are not semisimple. Our implementation efforts were guided by Bremner's example of decomposition the partial transformation semigroup $\QQ[PT_2].$ This finite dimensional algebra is not semisimple, but we have implemented algorithms that restrict this algebra to its semisimple part. We were able to determine the dimensions of the Wedderburn components of this algebra.
+
+\subsection{Generalized Implementations}
+In Section \ref{sec:algebracenter} we described an algorithm that computes the center of the group algebra $\QQ[G].$ This algorithm turns out to be more general. We can actually compute the center of any finite dimensional, associative, and semisimple algebra. All we need is a data structure for the base field and structure constants for the algebra. No conceptual changes are necessary.
+
+The splitting procedure detailed in Section \ref{sec:split} maintains the same generality. We can decompose an algebra that is finite dimensional, associative, and semisimple provided a representation for the field. In the case of finite fields the algorithm actually becomes simpler, an outline is given by Friedl and R\`onyai \cite{PolyTimeSolns}.
+
+If we wish to decompose algebras that are not semisimple there is some prep work to be done. In the case of Bremner's example with $\QQ[PT_2]$, we had to find a particular subset of the algebra called \textbf{the radical}. We then had to restrict the algebra to its \textbf{quotient} of the algebra over the radical. Algorithms for the computation of the radical of an associative algebra and the quotient of the algebra over the radical are implemented in my codebase.
+
+These are complex ideas, but their computation produces something of a subspace of the algebra that is semisimple. We can then apply all of our algorithms in the usual way to obtain the idempotents, but the computation of the $\Phi$ function requires an additional step that is beyond the scope of this paper.
+\end{document}

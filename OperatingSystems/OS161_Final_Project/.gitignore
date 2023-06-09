@@ -1,0 +1,5 @@
+src/build
+src/kern/compile
+src/defs.mk
+root
+src./root

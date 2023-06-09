@@ -1,0 +1,396 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\begin{document}
+\section{Implementations}\label{sec:Implementations}
+Throughout this section we present our implementations with regards to the computation of explicit Wedderburn decompositions. We consider the $n$-dimensional group algebra $\A = \QQ[G]$ over some arbitrary standard basis $B = \{a_1,...,a_n\}.$ Structure constants for $B$ are in $C\in\QQ^{n\times n\times n}.$ $B$ and $C$ are defined in this way for generality, but we can use the group basis and corresponding structure constants for the initial inputs.
+
+\subsection{The Center of the Group Algebra}\label{sec:algebracenter}
+My first algorithm computes the center of the algebra: $Z(\A) = \{a\in\A: ax = xa\; \forall x\in\A\}.$ This is the set of all elements of $\A$ that commute with every other element of $\A.$ It is a subset of $\A$, and an algebra in its own right. 
+
+\subsubsection{Theory}
+We have from Ivanyos and Ronyai \cite{tapas} that the Wedderburn-Artin Theorem applies to the algebra $Z(\A).$ In fact, there is a correspondence between the Wedderburn decomposition of the whole algebra and that of its center:
+\begin{align}
+    \Phi(\A) &= D_1^{d_1\times d_1}\times \cdots \times D_c^{d_c\times d_c}\nonumber\\
+    \Phi(Z(\A)) &= D_1\times\cdots\times D_c\label{eq:WAcommutative}
+\end{align}
+Moreover, we have that $D_i^{d_i\times d_i} = D_i\A$ by the span of their respective bases where the right-hand-side is viewed as a free module. 
+
+This is to motivate a reduction to the commutative case. It is much easier to derive $\Phi$ for commutative algebras then for non-commutative algebras. Subsequently lifting $\Phi$ to the elements of the whole algebra does not prove difficult.
+
+\subsubsection{Basis}\label{sec:CenterBasis}
+We begin by finding a basis for $Z(\A).$ We use the linear system strategy presented in Section \ref{sec:FindingSubalgebras}. Let $\alpha = x_1a_1+\hdots+x_na_n\in \A$ be an indeterminate element and consider the following two systems:
+\begin{align}
+ \begin{bmatrix} 
+    C(1,\infty,\infty)\\
+    \vdots\\
+    C(n,\infty,\infty)\\
+    \end{bmatrix}
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+&=
+\begin{bmatrix}
+    a_1\alpha \\ \vdots\\ a_n\alpha
+\end{bmatrix} \label{eq:alphaa}\\
+\begin{bmatrix} 
+    C(\infty,1,\infty)\\
+    \vdots\\
+    C(\infty,n,\infty)\\
+    \end{bmatrix}
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+&= 
+\begin{bmatrix}
+    \alpha a_1\\ \vdots\\ \alpha a_n
+\end{bmatrix}. \label{eq:aalpha}\\
+\intertext{From the solution vectors we can see that Equation \ref{eq:alphaa} and Equation \ref{eq:aalpha} compute the same products in opposite order. Then $\alpha\in Z(\A)$,}
+\iff\begin{bmatrix}
+    a_1\alpha\\
+    \vdots\\
+    a_n\alpha
+\end{bmatrix}
+&= 
+\begin{bmatrix}
+    \alpha a_1\\
+    \vdots\\
+    \alpha a_n
+\end{bmatrix}\\
+\iff \begin{bmatrix} 
+    C(1,\infty,\infty)\\
+    \vdots\\
+    C(n,\infty,\infty)\\
+    \end{bmatrix}   
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+&= 
+\begin{bmatrix} 
+    C(\infty,1,\infty)\\
+    \vdots\\
+    C(\infty,n,\infty)\\
+    \end{bmatrix}
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}\nonumber\\
+\iff\begin{bmatrix} 
+    C(1,\infty,\infty)\\
+    \vdots\\
+    C(n,\infty,\infty)\\
+    \end{bmatrix}
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+-
+\begin{bmatrix} 
+    C(\infty,1,\infty)\\
+    \vdots\\
+    C(\infty,n,\infty)\\
+    \end{bmatrix}
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+&= \Vec{0}\nonumber\\
+\iff\Bigg(
+\begin{bmatrix} 
+    C(1,\infty,\infty)\\
+    \vdots\\
+    C(n,\infty,\infty)\\
+    \end{bmatrix}
+-
+\begin{bmatrix} 
+    C(\infty,1,\infty)\\
+    \vdots\\
+    C(\infty,n,\infty)\\
+    \end{bmatrix}\Bigg)
+\begin{bmatrix}
+    x_1\\ \vdots\\ x_n
+\end{bmatrix}
+&= \Vec{0}.\nonumber
+\end{align}
+The parenthesized matrices are both $n^2\times n$ and fixed, so we compute their difference and solve for $x_1,...,x_n.$ Note that $\Vec{0}$ is a $1\times n^2$ vector. Solutions are coordinates for $\alpha$ over $B$ such that $a_i\alpha = \alpha a_i$ for all basis elements $a_i\in B.$ Then $\alpha$ commutes with all elements of the algebra by distributivity. 
+
+Form this system in SageMath and use the Sage kernel function to find solutions. I Construct a matrix with each solution as a row and compute the reduced row-echelon form to ensure linear independence. The rows form a derived basis for $Z(\A)$. This algorithm has running time polynomial in $n.$
+
+\subsubsection{Structure Constants}\label{sec:CenterStructureConstants}
+We now have a derived basis $Z = \{z_1,...,z_c\}\subseteq Z(\A)$ for the center, given with respect to a standard basis $B$. We form structure constants for $Z$. In this way, we can compute products of central elements without using a change of basis.
+
+We follow the technique presented in Section \ref{sec:RaisingTheBasis}. Compute the product of basis elements $z_iz_j$, given with respect to $B$, using the structure constants in $C\in\QQ^{n\times n\times n}.$ This can be done using the change of basis technique from Section \ref{sec:TheGeneralRepresentation}. Then form the following matrix:
+\begin{equation*}
+    P = \begin{bmatrix}
+        \vline & &\vline &\vline\\
+        z_1 & \hdots & z_c & z_iz_j\\
+        \vline & &\vline &\vline
+    \end{bmatrix}
+\end{equation*}
+Compute the reduced row-echelon form of $P$. As presented in Section \ref{sec:RaisingTheBasis}, the first $c$ entries of the last column are the coordinates of $z_iz_j\in Z(\A)$ with respect to the basis $B.$ Call these coordinates $u_1,...,u_c\in\QQ$. Then,
+\begin{align*}
+    z_iz_j &= u_1z_1 + \cdots + u_cz_c\\
+\intertext{and,}
+    z_iz_j &= \sum_{k=1}^c F(i,j,k)z_k
+\end{align*}
+where $F(i,j,k) = u_k$ and $F\in\QQ^{c\times c\times c}$. These are the derived structure constants for $Z(\A)$. Then use SageMath to form this matrix, compute its reduced row-echelon form, and store the coefficients in the structure constant tensor. This algorithm has running time polynomial in $c$ and $n.$ With these structure constants, we can now treat $Z=\{z_1,...,z_c\}$ as a standard basis of $Z(\A).$
+
+ \subsection{The Ideals of a Commutative Group Algebra}\label{sec:idealsofalgebras}
+This section presents three algorithms regarding the ideals of commutative, finite dimensional group algebras. Correctness of these algorithms was proved by Friedl and R\`onyai \cite{PolyTimeSolns}, but Bremner \cite{bremner} gives the \enquote{cleanest} presentation.
+
+Throughout this section we work with $Z(\A)$ as our commutative group algebra of dimension $1\leq c\leq dim(\A) = n$ over the rationals. We treat $Z = \{z_1,...,z_c\}\subseteq\QQ^c$ as a standard basis with structure constants in $F\in\QQ^{c\times c\times c}$. 
+
+\subsubsection{Generating an Ideal}
+Let $v\in Z(\A)$ be an arbitrary element. A \textbf{principle ideal} is an ideal generated by a single element:
+\begin{equation}\label{eq:principleidealgen}
+    Z(\A) v = \{zv : \forall z\in Z(\A)\}.
+\end{equation}
+We note that $Z(\A)$ is a commutative subalgebra of $\A$, and thus any principle ideal of $Z(\A)$ is also a commutative subalgebra. We use our technique from Section \ref{sec:FindingSubalgebras} to find the basis of the algebra. In this case, we need not solve for the indeterminates that yield a certain element, our indeterminate is $v = u_1z_1+\cdots+u_cv_c.$ 
+
+Note that $Z(\A)$ is commutative, so its left and right ideals are the same. Let $u_i\in\QQ$ be the coordinate on the $i^{th}$ basis vector in $Z$ for $1\leq i\leq c.$ We compute the product of $v$ with every basis element to obtain a new basis for $Z(\A)v$ using the following matrix:
+\begin{equation*}
+  \begin{bmatrix}
+      F(1,\infty,\infty)\\\vdots\\ F(c,\infty,\infty)
+  \end{bmatrix}
+  \begin{bmatrix}
+      u_1\\\vdots\\u_c
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+      z_1v\\
+      \vdots\\
+      z_cv
+  \end{bmatrix}.
+\end{equation*}
+Observe that we have changed the structure constants tesnor for this system. Since we treat $Z$ as a standard basis we must use the structure constants for $Z.$ On the right-hand-side we obtain a $1\times c^2$ vector with entries in $\QQ.$ Each $z_iv$ represents a $c$-length range of coordinates for a basis vector of the ideal, given with respect to $Z.$
+
+We form a matrix with each basis vector as a row and compute the reduced row-echelon form. We obtain $Y=\{y_1,...,y_d\}\subseteq\QQ^d$ linearly independent vectors $(1\leq d\leq c)$. This is the basis of the ideal generated by $v.$ Use SageMath to compute the linear system, construct $Y$, and compute the reduced row-echelon form. This algorithm has running time polynomial in $c.$
+
+ \subsubsection{The Identity of an Ideal}
+We now have a derived basis $Y = \{y_1,...,y_d\}$, given with respect to $Z$, for a principle ideal of $Z(\A).$ $Z$ is a standard basis for the center with structure constants in $\FF^{c\times c\times c}.$ We want to find the identity element of this ideal, we utilize the approach from Section \ref{sec:FindingSubalgebras}.
+
+We need to find the indeterminate $e=x_1y_1+\cdots+x_dy_d$ such that $ey_i = y_ie$ for $1\leq i\leq d.$ We remark that a construction similar to Equation \ref{eq:FindingElementsSystem} is exhaustive because $Y$ is a derived basis. We were able to derive the sub-matrices, $C(i,\infty,\infty)$, for a standard basis in short fashion. We will demonstrate that this is not the case here, and present an alternative approach.
+
+First, let $y_{i}\in Y.$ We denote the $j^{th}$ coordinate of this basis vector as $y_{ij}\in\QQ.$ Consider the indeterminate product $y_ie$ for some $y_i\in Y:$
+\begin{align}
+y_ie &= \sum_{j=1}^c y_{ij}z_j \sum_{k=1}^d\sum_{\ell=1}^c x_ky_{k\ell}z_{\ell}\nonumber\\
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c x_ky_{k\ell}z_jz_\ell\nonumber\\
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c x_ky_{k\ell} \sum_{m=1}^c F(j,\ell,m)z_m\nonumber\\
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c x_ky_{k\ell} 
+(F(j,\ell,1)z_1+\cdots+F(j,\ell,c)z_c).\nonumber
+\intertext{We can express the sum as a vector with respect to the standard basis of $Z(\A)$:}
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c x_ky_{k\ell} 
+\begin{bmatrix}F(j,\ell,1)&\hdots&F(j,\ell,c)\end{bmatrix}\nonumber\\
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c y_{k\ell} 
+\Big(x_1\begin{bmatrix}F(j,\ell,1)&\hdots&F(j,\ell,c)\end{bmatrix}
++\cdots+\allowbreak
+x_d\begin{bmatrix}F(j,\ell,1)&\hdots&F(j,\ell,c)\end{bmatrix}\Big)\nonumber\\
+&=\sum_{j=1}^cy_{ij}\sum_{k=1}^d\sum_{\ell=1}^c y_{k\ell}
+\begin{bmatrix}
+    F(j,\ell,1)&\hdots &F(j,\ell,1)\\
+    \vdots&&\vdots\\
+    F(j,\ell,c)&\hdots &F(j,\ell,c)\\
+\end{bmatrix}
+\begin{bmatrix}
+    x_1\\\vdots\\ x_d
+\end{bmatrix}.\nonumber
+\end{align}
+We have shown that this process does permit the formation of a linear system. We can see the product of a $c\times d$ matrix with a $1\times d$ indeterminate vector. Advancing further proves challenging in finding the appropriate dot products to construct the $cd$ equations for the system. Bremner \cite{bremner} provides the following equation to solve for the variables $x_1,...,x_d$:
+\begin{equation}\label{eq:identityequation}
+    \sum_{j=1}^d\Big(\sum_{\ell=1}^c\sum_{m=1}^c y_{j\ell}y_{km}F(\ell,m,p)\Big)x_j = y_{kp}\;\;\;\;(1\leq k\leq d, 1\leq p\leq c).
+\end{equation}
+Use SageMath to iteratively compute the entries of the matrix by Equation \ref{eq:identityequation}. Then use Sage's solver function to return the unique solution as the coordinates of the identity element with respect to the basis $Y.$ Then then compute a change of basis to $Z$, as shown in Section \ref{sec:TheGeneralRepresentation}. This algorithm is polynomial in $c$ and $d.$
+
+\subsubsection{The Defining Polynomial}
+Consider some $v\in I\subseteq Z(\A)$. The \textbf{defining polynomial} of $v$ is the smallest degree polynomial $f\in\QQ[x]$ such that $f(v) = 0.$
+
+We wish to compute the defining polynomial for elements of ideals of the commutative algebra $Z(\A)$. To do so, we use the technique from Section \ref{sec:RaisingTheBasis}. We start with the generator of the ideal $v\in Z(\A)$, and the identity of the ideal $Z(\A)v$, both given with respect to the basis $Z=\{z_1,...,z_c\}.$ We want to express $e$ as a linear combination of powers of $v.$ Form the matrix,
+\begin{equation*}
+    P = \begin{bmatrix}
+        \vline & & \vline & \vline\\
+        v^{j-1} & \cdots & v& e\\
+        \vline & & \vline & \vline
+        \end{bmatrix}.    
+\end{equation*}
+By augmenting powers of $v$ to the left until the next power of $v$ would cause $P$ to be rank deficient. We can compute powers of $v$ using the structure constants in $F\in\QQ^{c\times c\times c}$. Compute the reduced row-echelon form of $P.$ Then the first $j$ entries of the last column are the coefficients $c_1,...,c_j\in\QQ$ such that $e = c_jv^{j-1} +\cdots+ c_2v + c_1e.$
+
+Since augmenting $v^j$ would have made $P$ rank deficient, we have that $v^j = e.$ Then,
+\begin{align*}
+    0 &= v^j - e\\
+        &= v^j - (c_jv^{j-1} +\cdot + c_2v + c_1e)\\
+    \implies m_v(x) &= x^j - (c_jx^{j-1} + \cdots + c_2x + c_1)
+\end{align*}
+where $m_v(x)\in\QQ[x]$ is the defining polynomial of $v.$ Use SageMath to form the matrix, compute the reduced row-echelon form, and define this polynomial in a polynomial ring data structure. The algorithm has running time polynomial in $c.$
+
+\subsection{Idempotents of a Commutative Group Algebra}\label{sec:split}
+This algorithm is the crown jewel of our implementation efforts. Up until this point we had only relied on elementary linear algebra operations. Greater functionality is now required and more robust components of SageMath are utilized.
+
+We first present the theory for the algorithm as a whole, then give a formal presentation of the computation which relies on all of our subroutines from Section \ref{sec:idealsofalgebras}. Throughout this section, we let $Z(\A)$ be a commutative group algebra over $\QQ.$ We let $Z=\{z_1,...,z_c\}$ be a standard basis with structure constants in $F\in\QQ^{c\times c\times c}.$
+
+\subsubsection{Theory}
+An outline of the theory behind this algorithm is necessary for understanding. Our results are from Drozd and Kirichenko \cite{drozd}, Theorem 2.41 in particular. We let $\A$ be a group algebra of dimension $n$.
+
+We showed in Equation \ref{eq:WAcommutative} that $\Phi$ maps the center of the algebra $\A$ to one-dimensional matrices over $D_1,...,D_c.$ It is the case that $D_i = e_i Z(\A)$ is a principle ideal of $Z(\A).$ 
+
+There turns out to be an even stronger formulation of this idea. Suppose we have elements $e_1,...,e_c\in Z(\A)$ with the following properties:
+\begin{enumerate}
+    \item Idempotence: $e_i^2 = e_i$.
+    \item Pairwise orthogonality: $e_ie_j = 0$ if $i\neq j$.
+    \item Primitivity: $e_1+\cdots+e_c = 1\in Z(\A)$.
+    \item Centrality: $e_1,...,e_c\in Z(\A)$.
+\end{enumerate}
+We will refer to these elements generally as \textbf{idempotents} throughout, with the other properties implicit. Our function $\Phi$ can be defined in terms of these elements:
+\begin{equation}\label{eq:IdempotentDecompZ}
+\begin{aligned}
+    \Phi(Z(\A)) &= D_1\times\cdots\times D_c \\
+    \Phi(Z(\A)) &= e_1Z(\A)\times\cdots\times e_cZ(\A)\\
+    \Phi(z) &= \begin{bmatrix}
+        e_1z   & \hdots & 0\\
+        \vdots & \ddots & \vdots\\
+        0      & \hdots & e_cz
+    \end{bmatrix}
+\end{aligned}
+\end{equation}
+for some $z\in Z(\A).$ This follows directly from the Wedderburn-Artin Theorem \cite{hypercomplexArt}\cite{hypercomplexWedd}. Moreover, for the entire algebra and some element $a\in\A$ we have,
+\begin{equation}\label{eq:IdempotentDecompA}
+\begin{aligned}
+    \Phi(\A) &= D_1^{d_1\times d_1}\times\cdots\times D_c^{d_c\times d_c}\\
+    \Phi(\A) &= e_1\A e_1\times\cdots\times e_c\A e_c.\\
+    \Phi(a)  &= \begin{bmatrix}
+        e_1ae_1   & \hdots & 0\\
+        \vdots & \ddots & \vdots\\
+        0      & \hdots & e_cae_c
+    \end{bmatrix}.
+\end{aligned}
+\end{equation}
+Note that these ideals are not principle, but two-sided since $\A$ is not necessarily commutative. This is also directly from the Wedderburn-Artin Theorem. 
+
+The burden of computation is then on finding these idempotents. Their most identifiable feature is that, when all the other properties are maintained, they are the identity elements of the principle ideal they generate. To see this, let $e_i\in Z(\A)$ be a primitive and orthogonal idempotent. Let $z\in e_iZ(\A)$ be an arbitrary element so $z = e_iz'$ for some $z'\in Z(\A)$. Then,
+\begin{align*}
+                z &= e_iz'\\
+\implies    e_iz &= e_i^2z'\\
+\implies    e_iz &= e_iz'\\
+\implies    e_iz &= z
+\end{align*}
+by idempotence. The other direction follows from commutativity of $e_i,z\in Z(\A)$. By definition of the identity, we have that $e_i\in e_iZ(\A)$ is the identity. Then we can locate idempotents by computing identities. We will show in our algorithm that the idempotents will be pairwise orthogonal and primitive.
+
+\subsubsection{Implementation}
+In Section \ref{sec:idealsofalgebras} we defined three subroutines, all of which will be used here. Names, inputs, and outputs for these subroutines are given in Figure \ref{fig:SplitSubroutines}.
+
+\begin{table}[t]
+    \centering
+    \caption{Subroutines for Ideal Splitting}
+    \label{fig:SplitSubroutines}
+    \begin{tabular}{||c|l|l||}
+        \hline\hline
+        Name & Inputs & Outputs\\[.2ex]
+        \hline\hline
+        \Call{IdealBasis}{$v$} & $v$ An element of the algebra $Z(\A)$. &  $I$: A basis for                                                       the ideal $uZ(\A)$.\\[.2ex]
+        \hline
+         \Call{IdealID}{$I$} & $I$: A basis for the ideal. & $e:$ The identity element of the ideal $I$. \\
+         \hline
+         \Call{MinPoly}{$v,I$} &$I$: A basis for the ideal. & $f$: The defining polynomial of $u\in Z(\A).$\\
+         & $v$: An element of the ideal $I.$ & \\[.2ex]
+         \hline\hline
+    \end{tabular}
+\end{table}
+
+We present pseudocode for our idempotent finder in in Algorithm \ref{alg:IdmpFinder}. This is conceptually similar to that which was first produced by Friedl and R\`onyai \cite{PolyTimeSolns}, but carries the nuance of implementation hurdles that we addressed. The algorithm is called \Call{IdmpFinder}{$I,E$}. The parameter $I$ is a basis for the ideal, given with respect to the standard basis $Z.$ The parameter $E$ is a list that maintains the identity elements, or idempotents, that we have found. The initial call will be \Call{IdmpFinder}{$Z,[]$} with the standard basis and an empty list, $E$. We can use the standard basis for $Z(\A)$ because we have structure constants in $F\in\QQ^{c\times c\times c}$ from Section \ref{sec:CenterStructureConstants}.
+
+\begin{algorithm}[t]
+\caption{Algorithm for Finding Idempotents}\label{alg:IdmpFinder}
+\begin{algorithmic}[1]
+\Function{IdmpFinder}{$I,E$}
+\State $\FF = \QQ$
+\State $ext = 1$
+\For {$v\in I$}
+    \If{$v\neq\Vec{0}$ and \Call{IdealBasis}{$v$}$\neq I$}
+        \State $f = $\Call{MinPoly}{$v,I$}
+         \If {$f$.\Call{factor}{$\FF$}.\Call{length}{}$ == 1$}
+            \State $ext =$\Call{PrimitiveElement}{$ext,v$}
+            \State $\FF = \QQ(ext)$
+        \Else 
+            \For {$g\in f.$\Call{factor}{$\FF$}}
+                \State $J = $\Call{IdealBasis}{$g(v)$}
+                \State $E = $\Call{IdmpFinder}{$J,E$}
+            \EndFor
+        \EndIf
+        \State \Return $E$
+    \EndIf
+\EndFor
+\State $e =$\Call{IdealID}{$I$}
+\State $E.$\Call{append}{e}
+\State \Return $E$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+On Line 2, we set the field $\FF = \QQ$ which is the base field of the ideal $I\subseteq Z(\A)$. On Line 3, we set $ext = 1$ which is a trivial extension of $\FF.$ We will return to this idea on Line 7. Lines 4 and 5 iterate over non-trivial basis elements to see if any of them ``split'' the current ideal. A trivial element is one that generates the same ideal, or one that generates $\{0\}$. Suppose we have an element $v$ that generates a non-trivial ideal. On Line 6, we compute the defining polynomial of $v\in I$ as $f\in\QQ[x].$
+
+On Lines 7 and 11 we attempt to factor $f$ over $\FF.$ The simpler case is when $f=gh$ factors over $\FF.$ Here, $g(v)$ and $h(v)$ generate two mutually exclusive ideals with identities $e_g$ and $e_h$ such that $e_g+e_h = 1\in I$. So their identities are primitive in $I.$ Since $f$ is a minimal polynomial, $f(v) = g(v)h(v) = 0$ by definition. Then the generators of the ideal, $g(v)$ and $h(v)$, are pairwise orthogonal. We iterate over each factor, $g$, on Line 11 and find a basis for the ideal generated by $g(v)$ on Line 12 as $J.$ We then recursively call \Call{IdmpFinder}{$J,E$} on these new ideals.
+
+If $f$ does not factor then it may be the case that the identity element of the ideal we are currently working with is one of the idempotents we are looking for. As we discussed, this idempotent is orthogonal and primitive in the ideals we have descended from. It remains to prove that the ideal cannot be reduced, and thus the idempotent cannot split to obtain idempotents that are primitive in this ideal. We enter the if-clause on Line 7 and extend $\FF$ by $v$ on Line 9 using the Primitive Element Theorem. We explain this further below. This procedure is repeated. We extend $\FF$ by basis elements of $I$ until $f$ factors or we have processed every basis element of $I$. In the latter case, $I=\FF$ as an extension field and the identity must be primitive, it is already orthogonal. We append the identity of $I$ on Line 20 and return $E$ on line 21.
+
+There are two subroutines to be mentioned that we outsourced for an implemented. The first is \Call{PrimitiveElement}{$ext,v$} which we call on Line 8. There is a result called the Primitive Element Theorem which states that if $\alpha$ and $\beta$ are algebraic over $\QQ$ then $\QQ(\alpha,\beta) = \QQ(\gamma)$ where $\gamma = \alpha + k\beta$ for some $k\in\ZZ.$ This reduces the complexity of factoring over $\FF$ by reducing compound extensions of $\QQ$ to a single element extension. SageMath has an implemented algorithm that finds such a $k\in\ZZ$ to perform this reduction. While this step is not theoretically necessary, it is helpful in a practical implementation.
+
+The other subroutine is \Call{factor}{$\FF$}. This computes the factors of a polynomial $f\in\FF[x]$ where $\FF$ is a finite extension of $\QQ.$ We call this on Line 7 and 11. Landau \cite{landau} and Lenstra \cite{lenstra} gave algorithms for factoring polynomials over the rataionals and over finite extensions of the rationals in polynomial time. We were able to use SageMath's polynomial ring data structure, extension field structure, and factoring algorithms for this.
+
+We showed that each idempotent generates an ideal in Equation \ref{eq:IdempotentDecompZ}. We have just shown that every generator is pairwise orthogonal. We have also shown that any ideal we generate will have identities, primitive in the ideal they descended from. Then the primitivity of identity elements descends down the recursive calls until we arrive at the idempotent generators.
+
+It was shown by Friedl and R\`onyai \cite{PolyTimeSolns} in their Theorem 7.6 that this algorithm is correct, and has runtime polynomial in $c$ and $K$. The variable $c$ is the dimension of the basis $Z$. The variable $K$ is the bound on the absolute value of a structure constant which we take to be the absolute maximum value of a rational type in SageMath. Then \Call{IdmpFinder}{$\A,E$} returns a list of elements $e_1,...,e_c$ with which we can derive $\Phi$ as show in Equation \ref{eq:IdempotentDecompZ} and Equation \ref{eq:IdempotentDecompA}.
+
+\subsection{Computing $\Phi$}
+With all of our set-up from the previous sections we have almost enough to compute $\Phi.$ We note that this section encroaches on our future work. Section \ref{sec:wedderburncomponents} has been implemented in full. Section \ref{sec:computingphi} has a partial implementation, the merit of which is discussed in Section \ref{sec:results/phi}.
+
+We begin with the group algebra $\A = \QQ[G]$ of a finite group $G.$ We compute a basis $Z(\A)$ and its structure constants. We use our idempotent finding procedure to obtain the elements $e_1,...,e_c$ from \Call{IdealIdmps}{$Z(\A),E$}. Each of these idempotents are given with respect to the standard basis of $Z(\A)$. Since $Z(\A)$ is given with respect to the basis of $\A$, we compute a change of basis as shown in Section \ref{sec:TheGeneralRepresentation}. Then $e_1,...,e_c$ are expressed over the standard basis of $\A$ with structure constants in $C\in\QQ^{n\times n\times n}.$
+
+\subsubsection{The Wedderburn components of $\A$}\label{sec:wedderburncomponents}
+Before computing $\Phi$, we need to compute bases for each of the two-sided ideals $e_1\A e_1,...,e_c\A e_c.$ We consider a fixed idempotent $e$, given with respect to the standard basis of $\A.$ We use the linear system shown in Section \ref{sec:FindingSubalgebras} to find a basis for the ideal $e\A e$. Similarly to generating the basis of $Z(\A)$, we are not solving for a particular element but generating many elements. Let $e_i$ denote the $i^{th}$ coordinate of $e$ in this example:
+\begin{equation*}
+    \begin{bmatrix}
+        C(1,\infty,\infty)\\
+        \vdots\\
+        C(n,\infty,\infty)
+    \end{bmatrix}
+    \begin{bmatrix}
+        e_1\\\vdots\\e_n
+    \end{bmatrix}
+    = 
+    \begin{bmatrix}
+        a_1e\\\vdots\\ a_ne
+    \end{bmatrix}
+\end{equation*}
+Where $a_ie$ are $n$-entry ranges of the $1\times n^2$ product vector. We create a matrix $E$ and store each range as a row.
+Note that this ideal is two sided, so we also need to generate the basis of $e\A.$ We use the same idea as in Section \ref{sec:CenterBasis}:
+\begin{equation*}
+    \begin{bmatrix}
+        C(\infty,1,\infty)\\
+        \vdots\\
+        C(\infty,n,\infty)
+    \end{bmatrix}
+    \begin{bmatrix}
+        e_1\\\vdots\\e_n
+    \end{bmatrix}
+    = 
+    \begin{bmatrix}
+        ea_1\\\vdots\\ ea_n
+    \end{bmatrix}.
+\end{equation*}
+We obtain store each $n$-entry range as a row of $E$ once more. We compute the reduced row-echelon form of $E$ to obtain a linearly independent basis of $e\A e$, given with respect to the basis of $\A.$
+
+For each $e_i\A e_i$, the number of basis vectors in the reduced row-echelon form of $E$ is the dimension of $e_i\A e_i = D_i^{d_i\times d_i}.$ We can now characterize the Wedderburn components of the group algebra $\A$ by their dimensions. This subroutine has running time polynomial in $n$, the size of the group $G.$
+
+\subsubsection{Computing the Wedderburn decomposition}\label{sec:computingphi}
+This subroutine is the last in our implementation efforts and also represents an area for future work. We present a particular case for which our algorithm was effective. We note that $\Phi$ is a linear transformation of the elements of $\A$ over a standard basis. Then $\Phi$ is defined by a matrix. 
+
+Let $\A$ be the group algebra with basis $B=\{a_1,...,a_n\}$. Let $e_1,...,e_c$ be idempotents for $\A.$ Consider the case where each idempotent generates a one-dimensional, two-sided ideal of $\A$. That is, $e_i\A e_i$ has $e_i$ as its only basis element for all $1\leq i\leq c.$ Note that $c = n$ in this case. Then our mapping is $\Phi:\A\longrightarrow\QQ\times\cdots\times\QQ$. It is given by the following, invertible, linear transformation:
+\begin{align}
+    M^{-1} & = \begin{bmatrix}
+        \vline & & \vline\\
+        e_1 & \hdots & e_c\\
+        \vline & & \vline
+    \end{bmatrix}\label{eq:MphiinvOneDim}\\
+    M &= (M^{-1})^{-1}.\label{eq:MphiOneDim}
+\end{align}
+Equation \ref{eq:MphiinvOneDim} corresponds to the inverse transformation $\Phi^{-1}$. Equation \ref{eq:MphiOneDim} corresponds to $\Phi.$ $M$ expresses elements of $\A$, given by the basis $B$, with respect to the basis $e_1,...,e_c.$ $M^{-1}$ expresses elements of the Wedderburn space, given by the basis $e_1,...,e_c$, as elements of $\A$ with respect to the basis $B.$ This is our Wedderburn decomposition.
+
+
+
+
+\end{document}

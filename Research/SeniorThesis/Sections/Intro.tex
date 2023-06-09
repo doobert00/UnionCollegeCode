@@ -1,0 +1,24 @@
+\documentclass[../thesis.tex]{subfiles}
+\begin{document}
+\section{Introduction}\label{sec:Introduction}
+Matrices are an indispensable tool in various fields including mathematics, engineering, physics, and computer science. Most simply, these objects represent an arrangement of entries by row and column positions. Consider the following $2\times 2$ matrices:
+\begin{align*}
+    A =& \begin{bmatrix}1&2\\3&4\end{bmatrix}\\
+    B =& \begin{bmatrix}5&6\\7&8\end{bmatrix}.
+\end{align*}
+Additional structure is imposed by the \textbf{matrix multiplication} operation. Given two matrices, the matrix product is defined by dot products of rows and columns. In the case of $2\times 2$ matrix multiplication, we compute the product as follows:
+\begin{align*}
+    AB =& \begin{bmatrix}1&2\\3&4\end{bmatrix}
+            \begin{bmatrix}5&6\\7&8\end{bmatrix}\\
+        =& \begin{bmatrix}1\cdot5+2\cdot7 & 1\cdot6+2\cdot8\\
+                        3\cdot5+4\cdot7 & 3\cdot6+4\cdot8
+        \end{bmatrix}.
+\end{align*}
+More generally, let $A$ and $B$ be two $n\times n$ matrices. Then the $i^{th}$ entry of $AB$ is equal to the vector dot product of the $i^{th}$ row of $A$ with the $j^{th}$ column of $B$.
+
+In the case of $n\times n$ matrix multiplication, there are $n^2$ entries in the product matrix to be computed. For each entry we perform $n$ multiplications and $n-1$ additions, or $\mathcal{O}(n)$ operations. Thus, the naive efficiency of $n\times n$ matrix multiplication is $\mathcal{O}(n^3).$ Strassen \cite{strass} gave a ground breaking algorithm for matrix multiplication with complexity $\mathcal{O}(n^{2.81})$. Coppersmith and Winograd \cite{CandW} improved on this result with their $\mathcal{O}(n^{2.372})$ algorithm. These algorithms sparked an investigation into determining the optimal efficiency for matrix multiplication. Over the last fifty years, researchers have sought after the lowest exponent $\omega$ for which a matrix multiplication algorithm with running time $\mathcal{O}(n^{\omega})$ exists.
+
+Cohn and Umans \cite{CohnOld}\cite{CohnNew} published a theoretical framework for fast matrix multiplication. Their work relies on two ideas: computing a representation of matrices as elements of a group algebra, and an application of the Wedderburn-Artin Theorem. The representation step has been implemented for certain cases by Anderson \cite{anderson}. This thesis focuses on the latter step. Namely, we advance the Cohn and Umans framework by implementing an algorithm compute the mapping guaranteed by the Wedderburn-Artin Theorem. In composition with their framework, we have the tools to implement a simple instance of Cohn and Umans matrix multiplication.
+
+In Section \ref{sec:CandU}, we present a high-level overview of the Cohn and Umans framework. In Section \ref{sec:outline}, we delve further into the Wedderburn-Artin Theorem to characterize an implementation of this result, and present the relevant design decisions for the implementation. Section \ref{sec:representations} and Section \ref{sec:Implementations} describe the course of implementation from theory to practice. Results are shown in Section \ref{sec:results} and areas for advancement on this topic are provided in Section \ref{sec:FutureWork}.
+\end{document}

@@ -1,0 +1,33 @@
+plugins {
+  id 'application'
+  id 'org.openjfx.javafxplugin' version '0.0.13'
+}
+
+test {
+  useJUnit()
+  include '**/*Tests.class'
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+javafx {
+    version = "16"
+    modules = [ 'javafx.controls','javafx.fxml' ]
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+mainClassName = "edu.union.App"
+
+
+
+

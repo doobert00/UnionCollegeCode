@@ -1,0 +1,408 @@
+\documentclass[condensed]{union-cs-thesis}
+
+% Condensed formating - Use \documentclass[condensed]{union-cs-thesis} to cause the layout to take fewer pages.  It uses single-spacing instead of double spacing, compresses the front matter, and removes the lists of figures and tables. This might be useful as you draft your thesis.
+
+% Final formating - Use \documentclass[final]{union-cs-thesis} for the final version.
+
+% Honors formating - Use \documentclass[honors]{union-cs-thesis} to make the document match the library's formating specifications for honors theses.
+
+% COMPILING NOTE:
+%
+% To compile this file to produce a pdf document with all of the citations, references, and cross-references in place, use the following:
+%    latexmk -pdf thesis
+% If you want less verbose output:
+%    latexmk -pdf -silent thesis
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -----------------My macros and packages -------------------
+% ------- List of packages to import ------------
+\usepackage{fullpage}
+\usepackage{soul}
+\usepackage{url}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{float}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{chains,positioning}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{cd}
+\usepackage[latin1]{inputenc}
+\usepackage{clrscode3e} % Documentation here http://www.cs.dartmouth.edu/~thc/clrscode/clrscode3e.pdf
+\usepackage{amssymb}
+\usepackage{amsmath}
+\RequirePackage[amsmath,hyperref,thmmarks]{ntheorem}
+\usepackage{enumitem}
+\usepackage{hyperref} % This always has to be the LAST package.  
+\usepackage{subfiles}
+\usepackage{comment}
+\theoremseparator{.}
+
+% ------- Theorem and related environments --------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition} 
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{ex}[section]{Example}
+
+% ------- Commands specifying theorem style -------
+
+\theoremstyle{nonumberplain}
+\theoremheaderfont{\normalfont\itshape}
+\theorembodyfont{\normalfont}
+\theoremsymbol{\ensuremath{_\blacksquare}}
+\newtheorem{proof}{Proof}
+
+% ------- Useful math macros -----------
+\newcommand{\NN}{\mathbb{N}} % Natural Numbers
+\newcommand{\RR}{\mathbb{R}} % Real Numbers
+\newcommand{\ZZ}{\mathbb{Z}} % Integers
+\newcommand{\QQ}{\mathbb{Q}} % Rational Numbers
+\newcommand{\FF}{\mathbb{F}} %Arbitrary Field
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\OO}{\mathcal{O}}
+\newcommand{\A}{\mathcal{A}}
+
+\newcommand{\set}[1]{\ensuremath{\{{#1}\}}} % Set
+\newcommand{\bigset}[1]{\ensuremath{\left\{{#1}\right\}}}
+\newcommand{\condset}[2]{\ensuremath{\set{{#1}\;|\;{#2}}}} % Conditional set
+\newcommand{\nin}{\not\in}
+\newcommand{\cross}{\times} % Cartesian product
+\newcommand{\ssn}{\subsetneq} % Proper subset
+\newcommand{\sse}{\subseteq} % Subset
+\newcommand\Biggg{\@setfontsize\Large\@xviipt{22}}
+% --------------- End of my macros and packages --------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphicx}
+\usepackage[noend]{algorithmic}
+\usepackage[letterpaper,bindingoffset=\bindingOffset,%
+  left=1in,right=1in,top=1in,bottom=1in,%
+  footskip=.25in]{geometry}    
+
+\usepackage[toc,page]{appendix}
+
+\usepackage[style=numeric, maxcitenames=2]{biblatex}
+\addbibresource{thesis.bib}
+
+%%%%%%%%%%%%%%%%%%%%%% End of imports %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Quick note on using citation commands:
+%
+% \cite{key} will put in the kind of citation you'd want in body text
+% of a paper.  It includes the author name(s) as well as a reference number
+% in brackets.
+%
+% \parencite{key} on the other hand, just includes the reference number.
+%
+% If you are using one of these commands at the start of a sentence, you
+% should use the capitalized versions: \cite and \Parencite.
+
+
+\begin{document}
+\section{Implementations}
+Having contextualized this algorithm I now present my own work in an implementation of the Wedderburn-Artin Theorem for algebras $\QQ[G]$ where $G$ is a finite group. All of the following has been implemented in SageMath \cite{sage}.
+
+Throughout this section we will refer to the algebra $\QQ[G] = \A$, where $G$ is a finite group of order $n$, for brevity. This is also called a finite-dimensional associative algebra, or an algebra of dimension $n$.
+
+\subsection{Representations of the Group Algebra}
+Let $\A$ be an algebra of dimension $n$. We have that every element of $\A$ is of the form,
+\begin{equation*}
+    a_1g_1 + \cdots + a_ng_n\;\; (a_1,...,a_n\in\QQ).
+\end{equation*}
+It is often simpler to represent such an element by a vector of its coefficients, indexed by the subscript on group elements:
+\begin{equation*}
+    a_1g_1+\cdots+a_ng_n = \begin{bmatrix}a_1 &\cdots & a_n\end{bmatrix}.
+\end{equation*}
+Then we can represent every element of the group algebra as a vector of rational types, the data type for which is provided by SageMath. We call this vector a representation by the \textbf{basis} of the algebra.
+
+We also need a representation for the product operation on group elements. We rely on the closure axiom of groups: that the product of any two group elements is another group element. Let $C\in\QQ^{n\times n\times n}$ such that,
+\begin{equation*}
+    C(i,j,k) = \begin{cases}
+                    1 \text{ if } g_ig_j = g_k \\
+                    0 \text{ if } g_ig_j \neq g_k
+                \end{cases}.
+\end{equation*}
+We use these \textbf{structure constants} to compute the product of algebra elements as follows:
+\begin{equation}\label{eq:SCalgebraproduct}
+    \Big(\sum_{i=1}^n a_ig_i\Big) \Big(\sum_{j=1}^n b_jg_i\Big) = \sum_{i=1}^n\sum_{j=1}^n a_ib_j\sum_{k=1}^n C(i,j,k) g_k. 
+\end{equation}
+The structure constants, $C(i,j,k)$, avoid the need for explicitly computing group products by way of ``zeroing out'' the elements $g_k$ for which $g_k\neq g_ig_j$ when computing the product of two algebra elements.
+
+These data structures are fundamental to the representation of the group algebra $\A$. However, this idea is abstract. Provided that we have a data structure to represent the field $\FF$, we can use bases and structure constants to represent any finite-dimensional algebra over $\FF$.
+
+\subsection{The Center of the Group Algebra}
+This is our first algorithm for the explicit computation of the Wedderburn-Artin Theorem. Recall the \textbf{center} of the algebra $\A$ is the set $Z(\A) = \{a\in\A: ax = xa\; \forall x\in\A\}.$ This is the set of all elements of $\A$ that commute with every other element of $\A.$ It is a subset of $\A$, and an algebra in its own right.
+
+\subsubsection{Theory}
+We have from Ivanyos and R\`onyai \cite{tapas} that the Wedderburn-Artin Theorem applies to the algebra $Z(\A).$ In fact, there is a correspondance between the Wedderburn Decomposition of the whole algebra and of its center:
+\begin{align}
+    \Phi(\A) &= D_1^{d_1\times d_1} \times \cdots \times D_c^{d_c\times d_c}\nonumber\\
+    \Phi(Z(\A)) &= D_1 \times \cdots \times D_c\label{eq:WAcommutative}.
+\end{align}
+Moreover, we have $D_i^{d_i\times d_i} = D_i\A$ by the span of their respective bases where the right-hand-side is viewed as a free module. 
+
+This is to motivate the reduction of the algebra to the commutative case. It turns out to be easier to derive $\Phi$ for commutative algebras than for non-commutative algebras. Scaling $\Phi$ to the elements of the whole algebra does not prove difficult.
+
+\subsubsection{Implementation}
+Recall from Section \ref{sec:representations} that we need a basis and structure constants to fully describe an algebra. Our implementation computes both of these features. Bremner cites Drozd and Krichenko \cite{drozd} for the following subroutines.
+
+Let $\mathcal{A}$ be an n-dimensional group algebra with structure constants in $C\in \QQ^{n\times n\times n}$. The basis of the center is the nullspace of the $n^2\times n$ matrix in which the entry in row $(i-1)n+k$ and column $j$ is $C(i,j,k)-C(j,i,k)$ with $1\leq i,j,k\leq n.$ We define this matrix and call SageMath's kernal method to find the nullspace. This algorithm is polynomial in $n.$ We now have the basis of the center which we will refer to as $z_1,...,z_c$ with $1\leq c\leq n.$
+
+Each basis element of $Z(\A)$ is a linear combination of group elements that we can represent as coefficient vectors, and multiply with the structure constants in $C$. We now calculate the structure constants for $Z(\A)$ so we can multiply its basis abstractly. For each $1\leq i,j\leq c$, define the following matrix:
+\begin{equation*}
+    V_{ij} = \begin{bmatrix}
+        \vdots & & \vdots & \vdots\\
+        z_1^t &\hdots & z_c^t & v_{ij}^t\\
+        \vdots & & \vdots & \vdots
+    \end{bmatrix}.
+\end{equation*}
+ The first $c$ columns of $V_{ij}$ are the transpose of the coefficient vectors representing the basis of $Z(\A)$, given with respect to the basis of $\A.$ Then there are $n$ rows in $V_{ij}$. The last column is the transpose of the coefficient vector representing the product of the basis elements $z_iz_j.$ We compute this product with the structure constants in $C$ as shown in Equation \ref{eq:SCalgebraproduct}. We then call SageMath's reduced row echelon form algorithm on each $V_{ij}$.
+ 
+ Let $F\in\QQ^{c\times c\times c}$ be the structure constant table for $Z(\A).$ Then $F(i,j,k) = V_{ij}(k,c)$ for $1\leq k\leq c$, alternatively stated as the last column of $V_{ij}.$ This algorithm is polynomial in $c$ and $n$. We now have the structure constants for the basis of the center.
+
+ \subsection{The Ideals of the Commutative Group Algebra}
+This section presents three algorithms regarding the ideals of a commutative, finite dimensional, group algebra. Correctness of these algorithms was proved by Friedl and R\`onyai \cite{PolyTimeSolns}, but Bremner \cite{bremner} gives the cleanest presentation.
+
+Throughout this section we let $\A$ be the commutative group algebra of dimension $c\in\NN$ over the rationals. Its basis is denoted $z_1,...,z_c\in\QQ^n$ and the structure constants for this algebra are stored in $F\in\QQ^{c\times c\times c}$
+
+\subsubsection{Generating an Ideal}
+Let $u\in\A$ be an arbitrary element. A \textbf{principle ideal} of $\A$ is an ideal generated by a single element:
+\begin{equation}\label{eq:principleidealgen}
+    \A u = \{au : a\in\A\}.
+\end{equation}
+A basis for the principle ideal generated by $u\in\A$ is the non-zero rows of reduced row echelon form of the following matrix:
+\begin{equation*}
+    Y = \begin{bmatrix}
+        \cdots & z_1u & \cdots\\
+        &\vdots&\\
+        \cdots& z_cu&\cdots
+    \end{bmatrix}.
+\end{equation*}
+ Note that $u$ is given as a coefficient vector with respect to the basis $z_1,...,z_c$, so we can compute the products $z_iu$, for $1\leq i\leq c$, using the structure constants in $F$. Upon inspection, has the same form as Equation \ref{eq:principleidealgen} where each basis element is multiplied by the generator of the principle ideal. This algorithm is polynomial in $c.$
+
+ \subsubsection{The Identity of an Ideal}
+Suppose $y_1,...,y_d$ with $1\leq d\leq c$ is the basis of an ideal $I\subseteq\A$. We want to find an identity element of $I.$ This amounts to solving the following system of linear equations in the variables $x_1,...,x_d\in\QQ$:
+\begin{equation}
+    \sum_{j=1}^d\Big(\sum_{\ell=1}^c\sum_{m=1}^c y_{j\ell}y_{km}F(\ell,m,p)\Big)x_j = y_{kp} \;\; (1\leq k\leq d, 1\leq p\leq c).
+\end{equation}
+Note that $y_{j\ell}$ indicates the coefficient on $z_{\ell}$ in the basis element $y_j$, and similarly for $y_{km}$ and $y_{kp}.$
+
+The solution to this system yields the coefficients on the identity element with respect to the basis of the ideal:
+\begin{equation}
+    e = \sum_{i=1}^d x_iy_i
+\end{equation}
+Since each $y_i$ is a linear combination of $z_1,...,z_c$, we can easily raise $e$ to the basis of $\A$. It is important to note that this element may not be the identity of $\A.$ We call $e$ an \textbf{idempotent} because it has the property that $e^2 = e.$ We compute this idempotent in time polynomial in $c$ and $d.$
+
+\subsubsection{The Defining Polynomial}
+Consider some $u\in I\subseteq\A$ . The \textbf{defining polynomial} of $u$ is the smallest degree polynomial $f\in\QQ[x]$ such that $f(u) = 0.$ This is not the same as a minimal polynomial since it may be the case the $f$ is reducible, or not monic.
+
+We wish to compute the defining polynomials for elements of the ideals of the commutative algebra $\A$. To do so, we form the following matrix:
+\begin{equation*}
+    P = \begin{bmatrix}
+        \vdots & & \vdots & \vdots\\
+        u^{j-1} & \cdots & u & e\\
+        \vdots & & \vdots & \vdots
+        \end{bmatrix}.    
+\end{equation*}
+The right-most column of $P$ is the coefficient vector for the identity element of the ideal. All other columns are powers of $u$, computed with the structure constants in $F.$ We sucessively compute these powers until we obtain $u^j$ with $j\in\NN$ such that augmenting $u_j$ to $P$ would cause the matrix to be rank deficient. We then compute the reduced row echelon form of the $j\times c$ matrix. The coefficients of the minimal polynomial can be found in the last column.
+
+We note that the coefficients of the polynomial are in $\QQ$, but there is a discrepancy with the last term, $x^0$. While $x^0 = 1$ in the usual definition, we find that that $u^0 = 1\in I$ so $u^0 = e$, the identity element of the ideal. If $f$ is a degree $m\leq c$ polynomial then,
+\begin{align*}
+    f(u) &= \alpha_n u^m + \cdots + \alpha_1 u^1 + \alpha_0 u^0\\ 
+        &=\alpha_n u^m + \cdots + \alpha_1 u^1 + \alpha_0 e\\
+        &= 0
+\end{align*}
+where $\alpha_0,...,\alpha_m\in\QQ.$ This algorithm runs is polynomial in $c.$
+
+\subsection{The Irreducible Ideals of the Commutative Group Algebra}
+This algorithm is the crown jewel of our implementation efforts. Up until this point, the Sympy library was sufficient for all of our algorithms which rely on elementary linear algebra operations. At this point, greater functionality is required and a more robust system must be utilized.
+
+We first present the theory for the algorithm as a whole, then give a formal presentation of the computation which relies on all of our subroutines from Section \ref{sec:idealsofalgebras}. Throughout this section, we let $\A$ denote the $c$-dimensional commutative group algebra over $\QQ.$
+
+\subsubsection{Theory}
+As we showed in Equation \ref{eq:WAcommutative}, $\Phi$ maps the center of a group algebra to one dimensional matrices over $D_1,...,D_c.$ For commutative group algebras the same is true: $\Phi$ will map these structures to one dimensional matrices or fields:
+\begin{equation*}
+    \Phi:\A\longrightarrow D_1\times \cdots\times D_c.
+\end{equation*}
+It is also the case that each $D_i = \A e_i$ for some principle \textbf{minimal ideal} of $\A.$ This is the ideal generated by a single element that has no other non-trivial ideals. We can refer to this structure as an \textbf{irreducible ideal} as well.
+
+In order to calculate each $D_i$, we must find $e_i$ for $1\leq i,j \leq c$ that are,
+\begin{enumerate}
+    \item Idempotents: $e_i^2 = e_i$.
+    \item Orthogonal: $e_ie_j = 0$ if $i\neq j$.
+    \item Primitive: $e_1+\cdots+e_c = 1\in\A$.
+\end{enumerate}
+We determine idempotents by finding identity elements of principle ideals. These idempotents will be orthogonal and primitive by the construction. The orthgonality restriction ensures that $\A e_i\cap \A e_j = D_i\cap D_j = 0.$ The primitivity restriction is almost a linear independence statement. It is the idea that we can represent the identity of $1\in\A$ by $\Phi(1) = e_1\times\cdots \times e_c.$ 
+
+The goal of this algorithm is to find the irreducible ideals in the decomposition. To do so, we must find the elements $e_1,...,e_c$ that \textbf{split} the algebra. This will lead us to our main result.
+
+\subsubsection{Implementation}
+In Section \ref{sec:idealsofalgebras} we defined three subroutines, all of which will be used here. Names, inputs, and outputs for these subroutines are given in Figure \ref{fig:SplitSubroutines}.
+
+\begin{figure}[h]
+    \centering
+    \caption{Subroutines for Ideal Splitting}
+    \label{fig:SplitSubroutines}
+    \begin{tabular}{||c|l|l||}
+        \hline\hline
+        Name & Inputs & Outputs\\[.2ex]
+        \hline\hline
+        $\proc{IdealBasis}(u)$ & $u$ An element of the algebra $\A$. &  $I$: A basis for                                                       the ideal $\A u$.\\[.2ex]
+        \hline
+         $\proc{IdealID}(I)$& $I$: A basis for the ideal. & $e:$ The identity element of the ideal $I$. \\
+         \hline
+         $\proc{MinPoly}(u,I)$ &$I$: A basis for the ideal. & $f$: The defining polynomial of $u\in\A.$\\
+         & $u$: An element of the ideal $I.$ & \\[.2ex]
+         \hline\hline
+    \end{tabular}
+\end{figure}
+
+We present an outline of the algorithm in Figure \ref{fig:SplitAlgo}. This is conceptually similar to that which was first produced by Friedl and R\`onyai \cite{PolyTimeSolns}, but carries the nuance of implementation hurdles that we addressed. The algorithm is called $\proc{Split}(I,E)$. It's parameters are the basis of the ideal $I$, and a list that maintains the identity elements of the irreducible ideals we have found. The initial call will be $\proc{Split}(\A,[])$ where $\A$ is the basis of the full commutative group algebra and $E$ is the empty list.
+
+On line 1, we set the field $\FF = \QQ$ which is the base field of thhe ideal $I\subseteq\A$. On line 2, we set $ext = 1$ which is a trivial extension of $\FF.$ We will return to this idea on line 6. Lines 3 and 4 iterate over non-trivial basis elements to see if any of them ``split'' the current ideal. A trivial element is one that generates the same ideal, or one that generates an empty set. Suppose we have an element $u$ that does not generate the current ideal. On line 5, we compute the defining polynomial of $u\in I$ as $f.$
+
+We attempt to factor $f$ over the extension field $\FF.$ If $f$ has no factors then we enter the loop on line 6 and extend $\FF$ by $u.$ We repeat this procedure, extending $\FF$ by basis elements of $I$, until $f$ factors or we have processed every basis element of $I$. If this is the case then $I = \FF$ as an extension field and it is an irreducible ideal. We append the identity of $I$ to $E$ on line 14, and return $E$ on line 15.
+
+If $f$ does factor then $f = gh$. We have that $g(u)$ and $h(u)$ generate ideals with identity elements $e_g$ and $e_h$ (resp.) such that $e_ge_h = 0$ and $e_g + e_h = 1\in I.$ Thus, $e_g$ and $e_h$ are orthogonal idempotents that are primitive in the ideal $I.$ We iterate over each factor, $g$, on line 10 and recursively call $\proc{Split}()$ on the ideal generated by $g(u)$ on lines 11 and 12
+
+There are two subroutines to be mentioned: $\proc{factor}(\FF)$ and $\proc{PrimitiveElement}(ext,u).$ First, we compute the factors of a polynomial $f$ over $\FF$ which is a finite extension of $\QQ.$ Landau \cite{landau} and Lenstra \cite{lenstra} gave algorithms for the computation of this factorization that runs in polynomial time. We were able to use a preexisting data structure for extensions of $\QQ$, and an algorithm for factoring polynomials in such fields, implemented by SageMath. 
+
+Second, there is a result called the primitive element theorem which states that if $\alpha$ and $\beta$ are algebraic over $\QQ$, then $\QQ(\alpha,\beta) = \QQ(\gamma)$ where $\gamma = \alpha + k\beta$ for some $k\in\ZZ.$ This reduces the complexity of factoring by reducing compound extensions of the base field to single element extensions. SageMath has an implemented algorithm that finds such a $k\in\ZZ$ to perform this reduction. While this step, performed on lines 7 and 8, is not theoretically necessary, it is necessary in a practical implementation.
+
+It was shown by Friedl and R\`onyai \cite{PolyTimeSolns} in their Theroem 7.6 that this algorithm is correct, and has runtime polynomial in $c$ and $K$. The variable $c$ is the dimension of the entire commutative group algebra $\A$. The variable $K$ is the bound on the absolute value of a structure constant which we can take to be the absolute value of the maximum value of a rational type in SageMath. Then $\proc{Split}(\A,E)$ returns a list of elements $e_1,...,e_c$ which are the basis for the decomposition of the commutative group algebra $\A.$
+
+\begin{figure}
+    \centering
+    \caption{Split Algorithm}
+    \label{fig:SplitAlgo}
+\begin{codebox}
+\Procname{$\proc{Split}$($I,E$)}
+\li $\FF = \QQ$
+\li $ext = 1$
+\li \For $u\in I$\Do
+\li     \If $u\neq\Vec{0}$ and $\proc{IdealBasis}(u)\neq I$\Do
+\li         $f = \proc{MinPoly}(u,I)$
+\li         \If $f.\proc{factor}(\FF).\proc{length}() == 1$\Do
+\li             $ext = \proc{PrimitiveElement}(ext,u)$
+\li             $\FF = \FF(ext)$
+\li         \Else 
+\li             \For $g\in f.\proc{factor}(\FF)$\Do
+\li                 $I = \proc{IdealBasis}(g(u))$
+\li                 $E = \proc{Split}(I,E)$
+                \End
+\li             \Return $E$
+            \End
+        \End
+    \End
+\li $E.\proc{append}(\proc{IdealID}(I))$
+\li \Return $E$
+\end{codebox}
+\end{figure}
+
+\subsection{Ideals to Matrices}
+Having performed the appropriate set-up with Section \ref{sec:algebracenter} and Section \ref{sec:idealsofalgebras}, we can now compute $\Phi.$ We note that this section encroaches on our future work. Section \ref{sec:wedderburncomponents} has been implemented in full. Section \ref{sec:computingphi} has a partial implementation, the merit of which is discussed in Section \ref{sec:results/phi}.
+
+We begin with the group algebra $\A = \QQ[G]$ of a finite group $G.$ We compute $Z(\A)$, and then find elements $e_1,...,e_c$ by splitting the center of the algebra into its irreducible ideals.
+
+\subsubsection{The Wedderburn Components of $\A$}-
+ Here, we describe the computation of the dimensions of the matrix blocks in the output of $\Phi.$ Recall that $e_1,...,e_c$ are given with respect to the basis of $Z(\A)$. We compute a simple change of basis as follows:
+\begin{equation*}
+    e_i = \sum_{j=1}^c e_{ij}z_i = \sum_{j=1}^c e_{ij}\Big(\sum_{k=1}^n z_{jk}g_j\Big).
+\end{equation*}
+We now have each $e_i$ for $1\leq i \leq c$ is given with respect to the basis of $\A.$ Recall that,
+\begin{align*}
+    \Phi: \A\longrightarrow D_1^{d_1\times d_1}\times\cdots\times D_c^{d_c\times d_c}\\
+    \Phi: Z(\A)\longrightarrow D_1\times\cdots\times D_c
+\end{align*}
+where $D_i^{d_i\times d_i} = D_i\A$ as a free module, and $D_i = Z(\A)e_i$ as an ideal. It also turns out to be the case that $D_i^{d_i\times d_i} = \A e_i$ for each $1\leq i \leq c$ by the span of their bases. 
+
+Let $G = \{g_1,...,g_n\}$ be the group, and thus the basis for the algebra $\A$. We compute the basis of $\A e_i$ with the following matrix:
+\begin{equation*}
+    E_i = \begin{bmatrix}
+                \cdots & g_1e_i & \cdots\\
+                        & \vdots &\\
+                \cdots & g_ne_i & \cdots\\
+                \cdots & e_ig_1 & \cdots\\
+                        & \vdots & \\
+                \cdots & e_ig_n & \cdots
+            \end{bmatrix}.
+\end{equation*}
+Since we have computed a change of basis so $e_i$ is given over the basis of the algebra (ie. the group elements), we can use the structure constants for the group elements $C$, to compute the products $e_ig_j$ and $g_je_i$ in each row for $1\leq j\leq n.$ 
+
+We compute the reduced row echelon form of $E_i$, and the non-zero rows form a basis for $\A e_i = D_i^{d_i\times d_i}.$ The size of this basis will be equal to $q^2 + k \ge 1$ for some $k,q\in\ZZ_{\ge0}.$ We have four major cases:
+\begin{enumerate}
+    \item If $q = 1$ and $k = 1$ then $D_i^{d_i\times d_i} = \QQ$, the rationals.
+    \item If $q \ge 1$ and $k = 0$ then $D_i^{d_i\times d_i} = \QQ^{q\times q}$, $q\times q$ matrices over the rationals.
+    \item If $q = 1$ and $k \ge 1$ (note that $k$ cannot be square) then $D_i^{d_i\times d_i} = \QQ(\zeta_k)$, the $k^{th}$ cyclotomic field.
+    \item If $q \ge 1$ and $k \ge 1$ then $D_i^{d_i\times d_i} = \QQ(\zeta_k)^{q\times q}$ is $q\times q$, matrices over the $k^{th}$ cyclotomic field.
+\end{enumerate}
+We can now characterize the Wedderburn Components of the group algebra $\A$. This subroutine is polynomial in $n$, the size of the group $G.$ This has been implemented in SageMath.
+
+\subsubsection{Computing $\Phi$}
+This subroutine is the last in our implementation efforts and also represents an area for future work. We note that $\Phi$ is a linear transformation of the elements of $\A$ when represented by the vector of their coefficients. Then $\Phi$ is defined by a matrix. We consider three main cases.
+
+For the first case, suppose $\Phi: \A\longrightarrow \QQ\times\cdots\times\QQ$ where each field is generated by $e_1,...,e_c$ for some $c\in\NN.$ We compute two matrices:
+\begin{align}
+    M^{-1} &= \begin{bmatrix}
+                \vdots & & \vdots\\
+                e_c^t & \hdots & e_1^t\\
+                \vdots & & \vdots
+                \end{bmatrix}\label{eq:phiinversematrix}\\
+    M &= (M^{-1})^{-1}\label{eq:phimatrix}.
+\end{align}
+Equation \ref{eq:phiinversematrix} defines $\Phi^{-1}$, that is, the inverse transformation of elements from $\QQ\times\cdots\times\QQ$ to $\A.$ Equation \ref{eq:phimatrix} defines the transformation $\Phi$ from $\A$ to $\QQ\times\cdots\times\QQ.$ If we represent $a\in\A$ by the vector of its coefficients then $\Phi(a) = Ma = v.$ This output vector is an element of the decomposition space, and for some other $\Phi(b) = w$ $(b\in\A)$, we do in fact compute $wv = u$ as $w_iv_i = u_i$ for each $1\leq i \leq c.$ This subroutine has been implemented in SageMath.
+
+For the second case, suppose $\Phi:\A \longrightarrow \QQ\times\cdots\QQ\times \QQ^{q\times q}$. That is, at least one of the Weddeburn Components is a matrix over $\QQ$. Without loss of generality, suppose $q = 2$ and $\A e_1 = \QQ^{2\times2}$ for a fixed idempotent $e_1.$ Then $\A e_1$ has dimension 4, we let $u_1,...,u_4\in\QQ^{n}$ be its basis. 
+
+A basis for $\QQ^{q\times q}$ is the set of matrix units: $\{E_{11},E_{12},E_{21},E_{22}\}$. A matrix unit $E_{ij}$ is the matrix with a $1$ in the $ij^{th}$ entry a zeros elsewhere $(1\leq i,j\leq 2).$ Matrix units have the following property:
+\begin{align*}
+    &E_{ij}E_{k\ell} = \delta_{jk}E_{i\ell}\\
+    &\delta_{jk} = \begin{cases}
+                    1 \text{ if } j = k\\
+                    0 \text{ if } j\neq k
+                \end{cases}
+\end{align*}
+for $1\leq i,j,k,\ell\leq 2$. Arbitrarily identify the basis elements of the ideal $u_1,...,u_4$ with the matrix units $E_{11},E_{12},E_{21},E_{22}$. Call this mapping $\mu$, and also define $\mu(0)$ to be the $2\times 2$ zero matrix.
+We need the following to hold:
+\begin{equation}\label{eq:basisunitrelations}
+    u_iu_j = u_k \iff \mu(u_i)\mu(u_j) = \mu(u_k)
+\end{equation}
+for $1\leq i,j,k\leq 2$. It almost never the case that Equation \ref{eq:basisunitrelations} holds immediately. We manipulate the basis elements $u_1,...,u_4$ so that their span and linear independence remains the same, and so that the condition is satisfied. 
+
+Bremner \cite{bremner} presents techniques for performing this computation, but he does not give an algorithm. The reader is refereed to R\`onyai's appropriatly titled \textit{Simple Algebras are Difficult} \cite{SimpleAlgebrasAreDifficult}. R\`onyai showed that the complexity of this computation is equivalent to integer factorization. This problem is well-known to be in \textbf{NP}.
+
+If we are able to obtain the appropriate $u_1,...,u_4$ so that Equation \ref{eq:basisunitrelations} is satisifed, we can then compute our linear trasnformation matrices:
+\begin{align}
+    M^{-1} &= \begin{bmatrix}
+                \vdots & &\vdots &\vdots&\vdots&\vdots&\vdots\\
+                e_c^t  &\cdots &e_2^t & u_1^t & u_2^t & u_3^t & u_4^t\\
+                \vdots & &\vdots &\vdots&\vdots&\vdots&\vdots
+            \end{bmatrix}\label{eq:phiinversematrixformatrix}\\
+    M &= (M^{-1})^{-1}\label{eq:phimatrixformatrix}
+\end{align}
+The functions $\Phi^{-1}$ and $\Phi$ are defined by Equation \ref{eq:phiinversematrixformatrix} and Equation \ref{eq:phimatrixformatrix} respectively. We remark that this transformation is not computed in the same way as in the previous case. Represent $a\in\A$ by vector of its coefficients:
+\begin{equation*}
+    \Phi(a) = Ma
+            = M \begin{bmatrix}
+                a_c\\ \vdots\\ a_2\\ a_{11}\\a_{12}\\a_{13}\\a_{14}
+            \end{bmatrix} 
+             =\begin{bmatrix}
+                a_c'\\ \vdots\\ a_2'\\ a_{11}'\\a_{12}'\\a_{13}'\\a_{14}'
+            \end{bmatrix}
+             = \begin{bmatrix}
+                a_c' \\ \vdots \\ a_2' \\ \begin{bmatrix}
+                    a_{11}' & a_{12}'\\
+                    a_{13}' & a_{14}'
+                \end{bmatrix}
+            \end{bmatrix}.
+\end{equation*}  
+The rationale here is that the last four rows of $M$ define the transformation from $a$ to an element of $\QQ^{2\times 2}$ by the basis $E_{11},E_{12},E_{21},E_{22},$ or equivalently, $\mu(u_1), \mu(u_2), \mu(u_3),\mu(u_4).$ The product of vectors in this space is still pointwise, but the matrix components are still multiplied as matrices.
+
+The last case to be considered is where $\Phi:\A\longrightarrow \QQ\times\cdots\times\QQ\times\QQ(\zeta_k)$ for some $1\leq < k.$ That is, where at least one Wedderburn Component is a cyclotomic field. SECTION INCOMPLETE: I AM LOOKING FOR A RESULT THAT SAYS WE CAN REPRESENT ANY CYCLOTOMIC FIELD AS A MATRIX ALGEBRA. ALSO, BREMNER ASSUMES SQUARE BASIS BUT OUR ALGORITHM GIVES NON-SQUARE BASES FOR EXTENSION FIELDS: GAUSSIAN RATIONAL WEDDERBURN COMPONENT FROM MY PROGRAM HAS DIMENSION 2. THERE ARE MISSING PIECES FOR THE EXTENSION. 
+\end{document}

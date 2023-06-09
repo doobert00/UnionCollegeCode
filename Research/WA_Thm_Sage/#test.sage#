@@ -1,0 +1,57 @@
+reset()
+load('new_parsers.sage')
+lsoad('Bremner.sage')
+import re
+
+def setup():
+	G = SymmetricGroup(3)
+	A = G.algebra(QQ)
+	print(A.basis().list())
+	"""
+	Returns a list of basis elements [b_1,...,b_n]
+	
+	where b = a_1g_1 + ... a_ng_n.
+	note list(b) = [(g_1,a_1),...,(g_n,a_n))]
+	so we can check if g_1\in list(G) have g_1 == list(b)[0][0]
+	"""
+	print(A.center_basis())
+	
+def test_AlgebraProduct():
+  assert(True)
+
+def test_ChangeBasis():
+  assert(True)
+
+def test_RadBasis():
+  assert(True)
+
+def test_QStructs():
+  assert(True)
+
+def test_ZBasis():
+  assert(True)
+
+def test_ZStructs():
+  assert(True)
+
+def test_IdealIdent():
+  assert(True)
+
+def test_MinPoly():
+  assert(True)
+
+def test_Split():
+  assert(True)
+
+def test_QiBasis():
+  assert(True)
+
+def test_parse():
+  assert(True)
+def test_parse_prim():
+  assert(True)
+def test_parse_in_ext():
+  assert(True)
+
+setup()
+reset()

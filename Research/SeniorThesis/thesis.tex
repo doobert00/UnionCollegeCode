@@ -1,0 +1,168 @@
+\documentclass[honors]{union-cs-thesis}
+
+% Condensed formating - Use \documentclass[condensed]{union-cs-thesis} to cause the layout to take fewer pages.  It uses single-spacing instead of double spacing, compresses the front matter, and removes the lists of figures and tables. This might be useful as you draft your thesis.
+
+% Final formating - Use \documentclass[final]{union-cs-thesis} for the final version.
+
+% Honors formating - Use \documentclass[honors]{union-cs-thesis} to make the document match the library's formating specifications for honors theses.
+
+% COMPILING NOTE:
+%
+% To compile this file to produce a pdf document with all of the citations, references, and cross-references in place, use the following:
+%    latexmk -pdf thesis
+% If you want less verbose output:
+%    latexmk -pdf -silent thesis
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -----------------My macros and packages -------------------
+% ------- List of packages to import ------------
+\usepackage{fullpage}
+\usepackage{soul}
+\usepackage{url}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{float}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{chains,positioning}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{cd}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[latin1]{inputenc}
+%\usepackage{clrscode3e} % Documentation here http://www.cs.dartmouth.edu/~thc/clrscode/clrscode3e.pdf
+\usepackage{amssymb}
+\usepackage{amsmath}
+\RequirePackage[amsmath,hyperref,thmmarks]{ntheorem}
+\usepackage{enumitem}
+\usepackage{zref-xr}
+\usepackage{subfiles}
+\usepackage{comment}
+
+\usepackage[english]{babel}
+\usepackage[autostyle]{csquotes}
+
+\usepackage{hyperref} % This always has to be the LAST package.  
+\theoremseparator{.}
+
+% ------- Theorem and related environments --------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition} 
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{ex}[section]{Example}
+
+% ------- Commands specifying theorem style -------
+
+\theoremstyle{nonumberplain}
+\theoremheaderfont{\normalfont\itshape}
+\theorembodyfont{\normalfont}
+\theoremsymbol{\ensuremath{_\blacksquare}}
+\newtheorem{proof}{Proof}
+
+% ------- Useful math macros -----------
+\newcommand{\NN}{\mathbb{N}} % Natural Numbers
+\newcommand{\RR}{\mathbb{R}} % Real Numbers
+\newcommand{\ZZ}{\mathbb{Z}} % Integers
+\newcommand{\QQ}{\mathbb{Q}} % Rational Numbers
+\newcommand{\FF}{\mathbb{F}} %Arbitrary Field
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\OO}{\mathcal{O}}
+\newcommand{\A}{\mathcal{A}} % Algebra
+
+\newcommand{\set}[1]{\ensuremath{\{{#1}\}}} % Set
+\newcommand{\bigset}[1]{\ensuremath{\left\{{#1}\right\}}}
+\newcommand{\condset}[2]{\ensuremath{\set{{#1}\;|\;{#2}}}} % Conditional set
+\newcommand{\nin}{\not\in}
+\newcommand{\cross}{\times} % Cartesian product
+\newcommand{\ssn}{\subsetneq} % Proper subset
+\newcommand{\sse}{\subseteq} % Subset
+
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+
+\newcommand*{\myexternaldocument}[1]{%
+    \externaldocument{#1}%
+    \addFileDependency{#1.tex}%
+    \addFileDependency{#1.aux}%
+}
+% --------------- End of my macros and packages --------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphicx}
+\usepackage[letterpaper,bindingoffset=\bindingOffset,%
+  left=1in,right=1in,top=1in,bottom=1in,%
+  footskip=.25in]{geometry}    
+
+\usepackage[toc,page]{appendix}
+
+\usepackage[backend=biber,style=numeric, maxcitenames=2]{biblatex}
+\addbibresource{thesis.bib}
+
+%%%%%%%%%%%%%%%%%%%%%% End of imports %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Quick note on using citation commands:
+%
+% \cite{key} will put in the kind of citation you'd want in body text
+% of a paper.  It includes the author name(s) as well as a reference number
+% in brackets.
+%
+% \parencite{key} on the other hand, just includes the reference number.
+%
+% If you are using one of these commands at the start of a sentence, you
+% should use the capitalized versions: \cite and \Parencite.
+
+
+\begin{document}
+
+\pagenumbering{arabic}
+
+\title{Fast Matrix Multiplication and the Wedderburn-Artin Theorem}
+\author{Zachary Dubinsky}
+\date{\today}
+
+% The three commands below are only used when the honors option is
+% passed to \documentclass.  
+\authorLF{Dubinsky, Zachary}
+\dept{Department of Computer Science}
+\advisor{Professor M. Anderson and Professor J. Hatley}
+
+\maketitle
+
+\begin{abstract}
+Researchers Cohn and Umans \cite{CohnOld}\cite{CohnNew} proposed a framework for fast matrix multiplication algorithms. Their approach is reliant on an application of the Wedderburn-Artin Theorem: a landmark classification result in modern algebra. We show experimental success for algebras whose components all have dimension 1. We advance the Cohn and Umans framework by developing new, extendable tools to couple with their design. 
+\end{abstract}
+
+\tableofcontents
+\listoffigures % empty if using condensed formatting
+\listoftables % empty if using condensed formatting
+\makepreamble
+
+    
+\subfile{Sections/Intro}
+
+\subfile{Sections/CandU}
+
+\subfile{Sections/DesignDecisions}
+
+\subfile{Sections/Representations}
+
+\subfile{Sections/GeneralSubroutines}
+
+\subfile{Sections/Results}
+
+\subfile{Sections/FutureWork}
+
+\printbibliography{}
+
+\end{document}

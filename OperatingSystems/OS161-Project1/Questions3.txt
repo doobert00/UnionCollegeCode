@@ -1,0 +1,97 @@
+1. 
+    a. Examine the code for kprintf. It uses two syncronization mechanisms for making its console output atomic -- what are they?
+It uses a spinlock and a mutex lock.
+
+    b. Why might the kernel use two different mechanisms to protect console output?
+At the beginning of this assignment the mutex lock was unimplemented. If there was only the mutex lock, we would see interleaving in
+printing. That is, the characters would be garbeled and other printing might even happen.
+
+    c. Which of the two synchronization mechanisms is the kernel using when the interleaved output is produced by running your thread tests?
+The mutex lock is being used, if it was not being used then the functional spinlock would be in use and there would be no interleaving.
+
+    d. Explain why, despite this, the output is still interleaving.
+The mutex lock is unimplemented. The mutex lock is allowed to be used because of the "dolock" variable in kprintf.c.
+
+2. Identify two other subsustems of the kernel that use synchronization mechanisms. For each of these subsystems:
+    a. Briefly describe the purpose of the subsystem.
+Proc: This is a single-threaded kernel process. It allows tasks to be completed synchronously.
+Menu: This handles the selection and running of processes from the user menu.
+
+    b. What synchronization mechanisms do they use?
+Semaphore: The semaphore uses a wait channel and a spinlock.
+Proc: It has a spinlock data field. 
+
+    c. For what prupose?
+Semaphore: The wait channel is for processes to sleep while they are blocked by competing processes who are already in their critical sections. The 
+    spinlock protects the semaphore count from being subject to race conditions by preserving mutual exclusion when the value of count is changed.
+Proc: The spinlock allows us to alter the state of processes, and create new ones, without being subject to race conditions. For example, when 
+    adding or removing threads we use the lock to coppy information from processes before it changes.  
+
+    d. Are these subsystems afflicted by the same problem as kprintf?
+Semaphore: No, the wait channel and spinlock are already implemented.
+Proc: No, the spinlock has been implemented.
+
+3. Locate the implementation of semaphores in os161/src/kern/thread/synch.c Observe that they are implemented on top of wait channels and spinlocks.
+
+    a. Locate the definition of the struct semaphore. In prose, explain the purpose of each of its attributes. What does volatile mean here?
+sem_name: The name for the semaphore, used for debugging.
+sem_wchan: The wait channel that processes use to sleep while they are waiting to enter their critical sections.
+sem_lock: The spinlock ensures that changes to the sem_count (integer value) of the semaphore are atomic.
+sem_count: The value of the semaphore, if greater than 0 than other processes may enter their critical sections. This will updated atomically.
+
+Volatile means that the variable can be changed at any time, not necessarily in the scope of the thread, or the program code. Moreover, the value
+of the variable must be referenced directly from the memory address in which it is stored. Cache or compiler optimization is not possible. This
+ensures that the variable is always accurate to every change in its value, across any scope of the code.
+
+The field sem_count is a volatile integer, and all threads can update its value at any time. However, this is protected by the use of spinlocks
+that ensure mutual exclusion is preserved when updated sem_count.
+
+    b. In prose, explain the purpose of every line of the function sem_create().
+0: ARGUMENTS: "const char *name" is an immutable array of characters and "unsigned initial_count" is the start value for the semaphore.
+1: A pointer to a semaphore struct, sem, is created. No memory is allocated.
+2: We call kmalloc from the OS to allocate memory for the pointer, sem, the size of which is equal to the size of a semaphore as outlined in the header.
+3-5: We check if sem==NULL, this is the case that the OS could not allocate memory. Return NULL if so.
+6: "name" points to null-terminated array of characters, set this as the name of the semaphore (sem_name) for debugging. We use the kernel's kstrdup() to parse.
+7-10: Check if sem_name==NULL, this is the case that a bad *name argument was given. Deallocate the semaphore from memory and return NULL if so.
+11: Create a wait_channel (sem_wchan) and pass sem_name as its name. Then set the semaphores wait channel equal to this wait_channel.
+12-16: Check if sem_whan==NULL, this is the case that no wait_channel could be created. Deallocate sem_name and the semaphore from memory, then return NULL if so.
+17: Change the memory address of the sem->spinlock field to a spinlock, this is initialization.
+18: Set the sem->sem_count field to the initial_count argument. This is for the while loop in the Wait(...) function of the semaphore.
+19: Return the created semaphore.
+
+For more detail, see 3.a. on the purpose of each field in the semaphore.
+
+    c. In P, notice that the wait channel is locked before the spinlock is released. Can this cause deadlock? Explain why, or why not.
+This will not cause a deadlock. The thread aquires the lock in P. The thread has the lock in wchan_sleep until it goes to thread_switch. In
+thread_switch, if there is another valid process to be run the current thread releases the lock and waits in the wait channel. As such,
+the thread will sleep with the lock available to other users and there is no risk of deadlock.
+
+When the thread rises again (without the lock), it will progress past the thread_switch line of wchan_sleep and aquire the lock again.
+Then it will have the lock when updated the semaphores count field and will be able to release the lock after doing so. From the thread's
+perspective, it never lost the lock.
+
+4. Locate the implementation of wait channels in OS/161. Examine all the functions in this implementation.
+
+    a. Why are spinlocks used in the functon that checks whether a wait channel is empty?
+
+
+    b. Which function is responsible for putting threads to sleep? This function makes an assumption about the state of the thread -- what is it? 
+    This function also makes an important assumption about the state of the wait channel -- what is it 
+    (to determine this, look at the places this function is called from, and in the function it calls)?
+Threads are put to sleep by the wchan_sleep(...) function. This function assumes three things about the state of the thread: 
+that the thread is not running because of an interrupt; that the spinlock passed as an argument is held by the current thread; 
+that the cpu does not have more than one spinlock active. 
+
+The assumption about the wait channel is more significant. The function assumes, and does not check, that the wait channel and the spinlock
+provided as arguments are bound. In particular, that all members of the wait channel want to use the same lock. As an example, a semaphore
+has one spinlock and one wait channel. All threads that use the semaphore will aquire that lock and sleep on that wait channel. The function
+wchan_sleep(...) does not check for a tie between the wait channel and the spinlock.
+
+    c. Look at the implementation of spinlocks, wait channels, and P() of semaphores. During what portion of the code are interrupts disabeled.
+
+wchan_sleep(...): Interrupts are disabled during the call to thread_switch(...). Interrupts are also disabeled from the call to spinlock_aquire(...),
+    and are not enabled when the function terminates.
+spinlock_aquire(...): Interrupts are disabled while waiting to aquire a lock, and not enabled after. Interrupts are enabled by spinlock_release(...).
+spinlock_release(...): From the calling pattern, interrupts should be disabeled when the function is called. Though, this seems to be unchecked.
+P(...): Interrupts are disabled from the call to spinlock_aquire(...), and enabled when spinlock_release(...) is called at the end of the function.
+

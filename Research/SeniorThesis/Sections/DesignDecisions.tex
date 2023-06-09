@@ -1,0 +1,34 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\begin{document}
+\section{Design Decisions}\label{sec:outline}
+In this section I present the major design choices for my implementation of the Wedderburn-Artin Theorem.
+
+\subsection{On the Choice of Field}
+In Equation \ref{eq:complexWAthm} we present a case of the Wedderburn-Artin Theorem for the group algebra of a finite group over the complex numbers. We discuss a restriction on the input types.
+
+As we show in Section \ref{sec:representations}, representing a finite group is fairly simple because there are a discrete number of elements. However, the fields $\RR$ and $\CC$ do not share this trait. These fields contain transcendental elements that cannot be expressed by any finite number of bits. Issues with numerical stability would arise, so it is desirable to select a field that can be represented with finite bit length.
+
+The rational numbers $\QQ$ can be represented as a pair of integers: the numerator and the denominator. Provided we do not surpass the threshold of integer size, any rational number can be represented on a discrete system. Let $G$ be a finite group, the Wedderburn-Artin Theorem \cite{hypercomplexArt}\cite{hypercomplexWedd} yields the following:
+\begin{equation}\label{eq:rationalWAthm}
+    \Phi: \QQ[G] \longrightarrow D_1^{d_1\times d_1}\times\cdots\times D_c^{d_c\times d_c}
+\end{equation}
+for $d_i\in\NN.$ Upon inspection, Equation \ref{eq:complexWAthm} and Equation \ref{eq:rationalWAthm} are similar as they both return a block diagonal matrix. The distinguishing feature is in the entries of each block: algebras over $\CC$ yield matrices over the complex numbers; algebras over $\QQ$ yield matrices over the fields $D_i.$
+
+It is often the case that $D_i = \QQ.$ However, sometimes $D_i$ is called a \textbf{cyclotomic field}. Cyclotomic fields, $\QQ(\zeta_n)$, are the usual rationals with the $n^{th}$ root of unity adjoined. An example of such a field is the Gaussian rationals, $\QQ(\zeta_4) = \QQ(\sqrt{-1})$, but cyclotomics are not the focus of this thesis. We mention such fields because it was shown by the Brauer-Witt Theorem \cite{brauerwitt} that all of these $D_i$'s are a cyclotomic, even if only the trivial case of $n\leq 2.$
+
+By using algebras of a finite group over the rationals we can represent both the inputs and outputs discretely. We also avoid the issues of numerical stability from $\RR$ and $\CC.$ In fact, we can use any field that can be represented discretely as we discuss in Section \ref{sec:Results/Applications}.
+
+\subsection{Requirements and Programming Languages}
+The subroutines in this paper were presented in a theoretical context, and thus trade implementation feasibility for literary simplicity. Many rely on niche functionality that is beyond the scope of this implementation effort. In order to select and language and produce meaningful code, we had to outline our requirements and devise solutions.
+
+First, we rely on a number of concepts from linear algebra. We require data structures for representing the rational numbers, matrices, and vectors. We also need algorithms for solving systems of equations, computing echelon form, and performing other elementary linear algebra operations.
+
+Second, ideas from abstract algebra are imbued in many of our subroutines. The best example of this is our use of extension fields. We need data structures and algorithms for representing, altering, and performing computation within these extension fields. In particular, we need an algorithm for factoring in abstract polynomial rings.
+
+Our investigation into producing Wedderburn decompositions began initially in GAP \cite{gap}. GAP is a robust, computational discrete algebra system. It is a functional programming language focused on group theory. This system proved difficult to write in, though useful for testing.
+
+Some of our work was completed in Python. The Sympy \cite{sympy} library provides all of the linear algebra tools for a partial implementation. However, Sympy lacks sufficient functionality for working with extension fields. This motivated a return to computational discrete algebra systems with more capabilities. 
+
+Our final implementation was done in SageMath \cite{sage}. SageMath is effectively a Python interface to a number of other computational discrete algebra systems. The simplicity of the Python style pairs well with the relatively high capabilities of the language. They provide all of the data structures and algorithms we needed to implement the Wedderburn-Artin Theorem. With all of our design decisions accommodated, this language proved most ideal.
+\end{document}
