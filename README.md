@@ -28,4 +28,12 @@ Code from select classes while studying at Union College.
   - SeniorThesis contains the .tex code for the SeniorThesis.pdf final thesis paper.
   - WA_Thmm_Sage is the Sage Math implementation of my thesis.
   - Zach_Dubinsky_Research_Report.pdf is a research report of my work during Summer
-  2021. 
+  2021.
+
+# System Architecture
+  - Course Code: CSC-270
+  - Contains labs from my system architecture course.
+  - Developed CPU model using Logism and completed labs in MIPS assembly.
+  - Final project was to complete the labs again using ARM assembly with no
+  starter code.
+  - All work was individual.
